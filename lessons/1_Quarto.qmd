@@ -1,0 +1,596 @@
+---
+title: "Reproducible Projects in R"
+format: html
+---
+
+# Getting started with R + Rstudio
+
+First steps:
+
+1.  **Download and install R:** [CRAN = the Comprehensive R Archive Network](https://cran.r-project.org/)
+2.  **Download and install Rstudio:** <https://posit.co/download/rstudio-desktop/>
+    -   Rstudio = an interactive development environment (IDE) or "front end", R comes with it's own, but this one is better!
+3.  Install the `tidyverse`: an "opinionated [**collection of R packages**](https://tidyverse.org/packages) designed for data science"
+
+```{r, eval=F}
+# I'll demo multiple ways to do this, starting with
+install.packages("tidyverse")
+```
+
+------------------------------------------------------------------------
+
+If you need a crash course in R, there are lot's of places to start. Here are some suggestions:
+
+-   **R for Data Science (<https://r4ds.had.co.nz/>)**:\
+    As the Rstudio / Tidyverse team recommends here (<https://www.tidyverse.org/learn/>), this book is "the best place to start learning the tidyverse". Just about anyone should be able to (1) read the brief introduction and (2) look over the table of contents and quickly find a starting point that meets their level / interest. 
+
+-   **RStartHere (<https://github.com/rstudio/RStartHere>).**\
+    This is basically a list or compendium of functions/packages in R with the uniquely useful feature of being organized according to the "Data Science Workflow" presented in R for Data Science (<https://r4ds.had.co.nz/explore-intro.html>).
+
+# Quarto Projects
+
+-   `Rmd` and `Qmd`: Rmarkdown and Quarto markdown files
+    -   These are plain text files
+    -   For "literate programming".
+    -   They are good for communicating! They combine the narrative + display the code + the the results of it's execution in a unified, reproducible report format.
+    -   They display format-able text, and syntax-highlighted *executable* code.
+    -   They can be compiled ("knitted") into various output formats (e.g. PDF, html)
+    -   You are reading an HTML file compiled from a `.qmd` document.
+    -   "the next generation of R Markdown"
+-   Includes support for
+    -   LaTeX math! ($y=X\beta + \epsilon$)
+    -   Referencing (figures, literature, web)
+
+## Create a Quarto Project
+
+To start things off, let's everyone create a new project within which to work/learn.
+
+-   Rstudio \> File \> New Quarto Project \> New Directory \> "New Project Wizard" opens
+
+    ![](images/new-project-wizard1.png)
+
+-   Project Wizard:
+
+    -   Specify a **name** and **path** to the project
+    -   NOTICE: "Quarto Website" option provides
+
+![](images/clipboard-3788364448.png)
+
+## How it works
+
+Let me show you how you can use Quarto.
+
+![](images/clipboard-3963662212.png)
+
+-   Open the `.qmd` file created with same name as the project
+    -   When you've got multiple files open, Rstudio can store this information when you close
+    -   You can double click the ".Rproj" to open the project in the state you left it!
+
+### YAML
+
+-   The file starts with a `yaml` "header" between two "---"
+    -   Defines format, behavior, rendered appearance
+    -   Also defines things like:
+        -   title
+        -   author
+        -   format
+        -   editor
+-   There is also a project-wide `yaml` file `_quarto.yml`.
+    -   You can control overall format and behavior with it.
+    -   It's also where you can build out a Navigation bar if you have multiple linked pages in your project.
+
+```{yaml}
+---
+project:
+  title: "linear_models_intro"
+
+editor: visual
+
+format:
+  html:
+    toc: true
+    embed-resources: true
+    self-contained-math: true
+---
+```
+
+### Markdown
+
+-   Formatting text
+    -   Headings using (e.g. `#`, `##`, `###`)
+        -   Different from "COMMENTING" out code lines
+    -   **Bolds** (with `**`) and *italics* (`*`).
+    -   LaTeX math
+
+### LaTeX math
+
+-   Inline with (`$`)
+-   Full display on own line with (`$$`)
+
+A superscript with (`^`), and underscore with (`_`)
+
+Example `\sigma^2_e` renders as $\sigma^2_e$
+
+You can do more complicated super/subscripts, like so:
+
+`x_{a^{b-c}}` becomes $$x_{a^{b-c}}$$
+
+While `\frac{cov(x,y)}{var(x)} = \hat{\beta}` renders as
+
+$$
+\frac{cov(x,y)}{var(x)} = \hat{\beta}
+$$
+
+And much more.
+
+There are plug-ins for Word and Google Docs that can read/render LaTeX equations.
+
+### Code chunks
+
+In your `.qmd` file, type **`Cmd + Option + I`** (Mac) or **`Ctrl + Alt + I`** (Win).
+
+Should create a "code chunk", like this:
+
+```` markdown
+```{{r}}
+# code here
+```
+````
+
+-   Note the "Play" and other config. buttons
+
+### Rendering
+
+-   Save and press the "Render" button
+
+    ![](images/clipboard-1548720560.png)
+
+-   **NOTE on Rendering Quarto Markdown:** Rendering runs all code chunks. If you have a long-running, resource intensive project, structure it to avoid running that part during render. Use "\`\`\`\`{r, eval=FALSE}\`".
+
+## Visual vs. Source Editor
+
+![](images/clipboard-2318301048.png)
+
+At the top left. Two options.
+
+Other navigation pro-tips
+
+-   The "Outline" tab in the Editor (top right)
+
+    ![](images/clipboard-956630112.png)
+
+-   Code folding
+
+# Reproducible Project Guidelines
+
+**File / Folder Organization**
+
+No "best" way
+
+1.  Project in its own self-named directory
+2.  Document directory
+    -   `analyses/` for `.qmd`
+    -   `docs/` for compiled formats, could also include google/word docs
+    -   `data/` possibly with `raw`, `processed`, `meta` sub-directories
+    -   `output/` results of models, tables, compiled data 'products'
+    -   `code/` for scripts (if not within Rmd/Qmd)
+3.  Name files well (to reflect content-and-function)
+4.  Others
+    -   `README`, `LICENSE`, `CITATION`
+
+[**Good File Naming**]{.underline}
+
+-   **Machine-readable**
+    -   Friendly for searching (using regular expressions/globbing)
+        -   No spaces, unsupported punctuation, accented characters, or case-sensitive file names
+    -   Friendly for computing
+        -   Deliberate use of delimiters (i.e., for splitting file names)
+
+            -   `data-analyses-fig1.R` with `-` used consistently as a separator
+-   **Human-readable**
+    -   Name contains a brief description of the content
+
+    -   Borrow from clean URL practices:
+
+        -   “slug,” i.e., the part of a URL that is human-readable
+
+            -   i.e. `data-analyses-fig1.R`
+-   Name files considering machine sorting
+
+[**Relative Paths**]{.underline}
+
+-   Since your whole analysis fits in the project directory, it's "portable"
+
+-   Code paths can be "relative"
+
+-   This: `df <- read.csv("../data/foodchoice_budgetlines.csv")`
+
+-   Versus this: `df <- read.csv("C:/Users/wilma/Desktop/project23/data/foodchoice_budgetlines.csv")`
+
+-   Look `here`! There's a handy package... it works kinda like a combo of `paste()` and `getwd()` for constructing paths to files.
+
+```{r, eval=F}
+here::here()
+```
+
+```{r, eval=F}
+here::here("data.csv")
+```
+
+[**Treat Data as Read Only**]{.underline}
+
+-   Or, as we say in my lab "No Excel!"
+
+-   Modify only with code. Do not overwrite. Export a "processed" file.
+
+[**\
+Generated Output Is Disposable**]{.underline}
+
+-   You can regenerate it.
+
+-   Output to the `output` folder
+
+[**Include a README**]{.underline}
+
+-   I've rarely done this.
+-   Should be a plain text file.
+-   Explain purpose of directory / project.
+-   Explain contents of data files.
+    -   How are they formatted?
+    -   What do each of the columns mean?
+
+[**Storage**]{.underline}
+
+-   3-2-1 principle (3 copies, on 2 different media, 1 offsite)
+
+    -   My set-up: laptop + Google Drive + Back-up drive
+
+-   Keep it in the cloud (e.g. Google Drive)
+
+    -   Exclude data (find it alt. back-up) when too big
+
+-   Use Git, GitHub for Version Control (another lesson)
+
+[**Project Environments**]{.underline}
+
+-   `renv`, `packrat`
+
+-   Docker
+
+# Organize your own project
+
+-   Create `data/` and `output/` directories
+
+![](images/clipboard-3367414237.png)
+
+# First steps with R
+
+-   Base R = the functions and packages that come pre-installed (are native) to R
+-   R packages = collection of code, data, documentation that can be "installed" into the R environment.
+-   Formats where code can be stored (and executed):
+    -   **Code** is
+        -   any set of instructions written in a specific language, directing computer tasks
+        -   just text, you *could* put it in a word document,
+        -   An "R script" refers to a simple text file with the extension `.R` , containing R code
+    -   Data / R object storage
+        -   `Rdata`: Stores multiple R objects
+        -   `rds`: Single R objects
+        -   `.csv`: comma separated values (a common, almost standard format of flat file
+        -   R can read *almost* any file-type, with the right
+
+## Objects and data structures
+
+![R Data structures – figure from https://www.dataquest.io/](images/clipboard-3673113499.png){#fig-r-objects}
+
+### Vectors
+
+```{r}
+# Atomic vectors
+x = c(1,2,3,4,5,6) # numerical vector
+x1 = c(1.2, 1.3,1.8, 2.9, 10.5,0.9) # numerical vectors
+y <- c("A", "B", "A") # character vector
+z = c(TRUE, TRUE, FALSE, FALSE) # logical vector
+
+dim(x)
+as.matrix(x)
+dim(as.matrix(x))
+
+```
+
+Vectors may only have one type.
+
+### Matrices
+
+```{r}
+# Matrix: vectors in more than one dimension 
+X <- matrix(c(1, 0,
+              1, 1,
+              1, 0), nrow = 3, byrow = TRUE)
+
+X
+dim(X)
+```
+
+Matrices can *also* only have one type or the other (char, num, logi).
+
+### data.frames
+
+```{r}
+df <- data.frame(y = c(10, 12, 11),
+                 geno = factor(c("G1", "G2", "G1")),
+                 block = factor(c(1, 1, 2)))
+str(df)
+
+```
+
+-   Columns = variables
+-   Rows = observations
+-   mixed variable types
+-   Technically, a special case of a list
+
+```{r}
+# Example in Genomics
+x = c("snp1","snp2", "snp3", "snp4", "snp5", "snp6")
+y = c(1,1,2,2,3,3)
+z = c(10,20,100,400,150,200)
+ind1 = c("AA", "AA", "aa", "Aa", "aa", "AA")
+ind2 = c("AA", "AA", "aa", "Aa", "AA", "AA")
+ind3 = c("Aa", "AA", "aa", "Aa", "Aa", "aa")
+ind4 = c("aa", "AA", "Aa", "aa", "AA", "AA")
+
+snp_data = data.frame(name = x,chr = y,pos = z,ind1,ind2,ind3,ind4)
+snp_data
+```
+
+### Factors
+
+```{r}
+levels(df$geno)
+```
+
+Factors add a layer of information (an attribute) called `levels()`.
+
+Use them *ONLY* for specific purposes to avoid undesired behavior.
+
+Two examples (demo later):
+
+-   Factor levels matter for design matrix creation. They control the ordering of columns in a `model.matrix()` call.
+-   Factor levels control the order of appearance of categories in a plot made with `ggplot()`. \### Lists
+
+Containers for *anything*. Mix any type.
+
+```{r}
+m <- lm(y ~ geno + block, data = df)
+str(m)
+```
+
+# Sub-setting the Data
+
+Indices (the positioning system used for the dimensions of objects).
+
+R is 1-based (starts at 1)
+
+## Base R
+
+Vectors
+
+```{r}
+y[1]
+z[2:3]
+z[-c(1:5)]
+```
+
+Matrices
+
+`matrix[row,column]`
+
+```{r}
+X[1:2,]
+```
+
+data.frames
+
+```{r}
+df[1,2]
+df$geno
+
+df[["geno"]]
+df[["geno"]][1]
+
+```
+
+Lists
+
+```{r}
+m$coefficients
+m[1:2]
+m[1:2][["residuals"]]
+m[1:2][["residuals"]][1]
+```
+
+## tidyverse style - dplyr + `%>%`
+
+Let's add to the tool set.
+
+The "tidyverse" series of package provides a huge amount of utility for clear, human-readable programming. You'll learn it well following "[R for Data Science](https://r4ds.hadley.nz/ "R for Data Science")".
+
+```{r, message=FALSE}
+library(tidyverse)
+```
+
+First `magrittr`'s "pipe" function (`%>%`).
+
+![](images/clipboard-1822205339.png)
+
+![](images/clipboard-1933211541.png)
+
+-   `x %>% f` is equivalent to `f(x)`
+-   `x %>% f(y)` is equivalent to `f(x, y)`
+-   `x %>% f %>% g %>% h` is equivalent to `h(g(f(x)))`
+
+The left-hand side is evaluated first, then passed as input to the right-hand side.
+
+An argument placeholder exists to direct the input from left into the right side function. - `x %>% f(y, .)` is equivalent to `f(y, x)` - `x %>% f(y, z = .)` is equivalent to `f(y, z = x)`
+
+**Keyboard Shortcut:** Type `CMD + Shift + M` (Mac) or `CTRL + Shift + M` (Win) to make pipes (`%>%`) easily
+
+```{r}
+sum(snp_data$chr)
+# is equivalent to
+snp_data$chr %>% sum(.)
+# or
+snp_data$chr %>% sum # for shortest
+
+```
+
+Now let's add `dplyr` (https://dplyr.tidyverse.org/) "a grammar of data manipulation".
+
+-   Cheatsheet: https://biostats.w.uib.no/dplyr-a-simplified-cheat-sheet/
+-   [`mutate()`](https://dplyr.tidyverse.org/reference/mutate.html) adds new variables that are functions of existing variables
+-   [`select()`](https://dplyr.tidyverse.org/reference/select.html) picks variables based on their names.
+-   [`filter()`](https://dplyr.tidyverse.org/reference/filter.html) picks cases based on their values.
+-   [`summarise()`](https://dplyr.tidyverse.org/reference/summarise.html) reduces multiple values down to a single summary.
+-   [`arrange()`](https://dplyr.tidyverse.org/reference/arrange.html) changes the ordering of the rows.
+
+Let's use just `filter()` and `select()` now.
+
+```{r, eval=F}
+# Filter for subsetting the rows of a data.frame
+snp_data %>% 
+  filter(chr==1,
+         pos<100)
+# Select to subset the columns and/or reorder them
+snp_data %>% 
+  select(chr,pos,ind2:ind3)
+
+# Combo 
+snp_data %>% 
+  # pick out chromosome 2 only
+  filter(chr==2) %>% 
+  # select desired colulmns
+  select(chr,pos) %>% 
+  # grab a single column
+  .$pos %>% 
+  # pass it to a function like summary
+  summary
+```
+
+# Matrix operations
+
+## Add/Subtract/Arithmetic
+
+![Element-wise operations – figure from https://www.dataquest.io/](images/clipboard-3002205466.png){#fig-add-subtract-vectors}
+
+```{r, eval=F}
+4+4 # sum
+3/3 # divide
+log(10) # natural logarithm
+log10(0.01) # base-10 logarithm
+exp(2.3) # exponential
+
+# Summary statistics
+tmp = c(1,2,3) # example
+mean(tmp) # mean
+var(tmp) # variance
+sum(tmp) # sum
+
+# Summary statistic in data frame
+mean(snp_data$pos) # mean of a col in the data frame
+var(snp_data$pos) # var of a col in the data frame
+
+# Example from https://www.dataquest.io/
+exam_grades <- c(92, 90, 84, 95, 77, 92, 85)
+homework_grades <- c(87, 81, 95, 86, 85, 90, 88)
+sum_grades = exam_grades+ homework_grades
+```
+
+Recall:
+
+$$
+y = X\beta + \epsilon
+$$
+
+## Matrix multiplication
+
+```{r}
+beta <- c(10, 2)
+
+# Matrix multiplication
+X %*% beta
+
+beta * beta
+
+beta %*% beta
+
+
+```
+
+Cross products and transpose
+
+```{r}
+t(X) %*% X
+t(X) %*% c(10, 12, 11)
+
+```
+
+Inversion 
+
+Recall that $A^{-1}A=AA^{-1}=1$ defines an inverse matrix
+
+```{r}
+A<-t(X) %*% X # make a square matrix
+A
+```
+
+
+```{r}
+# Invert it
+Ainv<-solve(A)
+Ainv
+```
+
+```{r}
+A%*%Ainv
+```
+
+
+Recall the OLS solution for a linear model:
+
+$$
+\hat{\beta} = (X^TX)^{-1}X^Ty 
+$$
+
+```{r}
+y <- c(10, 12, 11)
+solve(t(X) %*% X) %*% t(X) %*% y
+```
+
+# Take some time
+
+Familiarize yourself with working in Rstudio, with Quarto markdown. 
+
+Things you might want to work on:
+1. Making code chunks
+2. Writing with LaTeX formulas
+3. Formatting text with markdown
+4. Navigating Rstudio
+5. Rendering your QMD
+6. Manipulating datasets with `dplyr`
+7. Writing pipelines with `%>%`
+8. Vector and Matrix Operations
+
+# Not (yet) covered
+
+- Additional `dplyr` functions
+- Plotting with `ggplot`
+- Functions
+- Loops (with `purrr`)
+- The answer to the ultimate question of life, the universe and everything
+
+
+# References
+
+-   https://carpentries-incubator.github.io/reproducible-publications-quarto/index.html
+-   Isik et al. 2017 - Ch. 2 - A Review of Linear Mixed Models
+-   Ferrao - MAS - Intro to Linear Models
+-   Ferrao - QG - WK2a - Why models?

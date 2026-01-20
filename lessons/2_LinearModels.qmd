@@ -1,0 +1,7 @@
+---
+title: "Linear Models with Matrices"
+author: "Marnin Wolfe"
+format: html
+---
+
+**Previously**: [Reproducible Projects in R](1_Quarto.qmd)

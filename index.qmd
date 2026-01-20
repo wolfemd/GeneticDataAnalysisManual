@@ -1,0 +1,27 @@
+---
+title: "Genetic Data Analysis – Spring 2026"
+author: Marnin Wolfe
+university: Auburn University
+department: CSES
+---
+
+Welcome to **Genetic Data Analysis (CSES 7160)** at Auburn University.
+
+This course covers statistical and computational foundations for analyzing genetic, genomic, and phenotypic data in crop science, with an emphasis on reproducible workflows using **R, Quarto, GitHub**, and modern mixed-model approaches.
+
+### Key Links
+
+-   **Syllabus:** \<./syllabus.qmd\>
+-   **Schedule:** \<./schedule.qmd\>
+-   **Lecture Notes:** \<./lectures/lec01-intro.qmd\>
+-   **Course GitHub Repo:** <URL placeholder>
+
+### Instructor
+
+**Dr. Marnin D. Wolfe**\
+Assistant Professor, Quantitative Genetics\
+Department of Crop, Soil & Environmental Sciences, Auburn University
+
+### Lessons
+
+[Lesson 1 - First steps in R](lessons/wk1_IntroR.html)

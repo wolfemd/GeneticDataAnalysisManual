@@ -1,0 +1,33 @@
+project:
+  title: "GeneticDataAnalysisSP26"
+  type: website
+  render:
+    - "*.qmd"
+
+editor: source
+
+website:
+  title: "Genetic Data Analysis (Spring 2026)"
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - text: "Home"
+        href: index.qmd
+      - section: "Module 1"
+        contents:
+          - lessons/1_Quarto.qmd
+          - lessons/2_LinearModels.qmd
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-float: true
+    toc-depth: 3
+    code-copy: true
+    smooth-scroll: true
+    grid:
+      sidebar-width: 280px
+    embed-resources: true
+    self-contained-math: true
