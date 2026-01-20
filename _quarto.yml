@@ -1,6 +1,7 @@
 project:
   title: "GeneticDataAnalysisSP26"
   type: website
+  output-dir: docs
   render:
     - "*.qmd"
 

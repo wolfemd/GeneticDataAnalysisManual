@@ -1,0 +1,129 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Genetic Data Analysis – Spring 2026",
+    "section": "",
+    "text": "Welcome to Genetic Data Analysis (CSES 7160) at Auburn University.\nThis course covers statistical and computational foundations for analyzing genetic, genomic, and phenotypic data in crop science, with an emphasis on reproducible workflows using R, Quarto, GitHub, and modern mixed-model approaches.\n\nKey Links\n\nSyllabus: See Shared Google Doc (or Canvas page)\nSchedule: See Shared Google Doc (or Canvas page)\nLecture Notes: See Shared Google Doc (or Canvas page)\nCourse GitHub Repo: \n\n\n\nInstructor\nDr. Marnin D. Wolfe\nAssistant Professor, Quantitative Genetics\nDepartment of Crop, Soil & Environmental Sciences, Auburn University\n\n\nLessons\n\nLesson 1 - Reproducible data projects\nLesson 2 - Linear Models with Matrices",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "lessons/2_LinearModels.html",
+    "href": "lessons/2_LinearModels.html",
+    "title": "Linear Models with Matrices",
+    "section": "",
+    "text": "Previously: Reproducible Projects in R",
+    "crumbs": [
+      "Module 1",
+      "Linear Models with Matrices"
+    ]
+  },
+  {
+    "objectID": "lessons/1_Quarto.html",
+    "href": "lessons/1_Quarto.html",
+    "title": "Reproducible Projects in R",
+    "section": "",
+    "text": "First steps:\n\nDownload and install R: CRAN = the Comprehensive R Archive Network\nDownload and install Rstudio: https://posit.co/download/rstudio-desktop/\n\nRstudio = an interactive development environment (IDE) or “front end”, R comes with it’s own, but this one is better!\n\nInstall the tidyverse: an “opinionated collection of R packages designed for data science”\n\n\n# I'll demo multiple ways to do this, starting with\ninstall.packages(\"tidyverse\")\n\n\nIf you need a crash course in R, there are lot’s of places to start. Here are some suggestions:\n\nR for Data Science (https://r4ds.had.co.nz/):\nAs the Rstudio / Tidyverse team recommends here (https://www.tidyverse.org/learn/), this book is “the best place to start learning the tidyverse”. Just about anyone should be able to (1) read the brief introduction and (2) look over the table of contents and quickly find a starting point that meets their level / interest. \nRStartHere (https://github.com/rstudio/RStartHere).\nThis is basically a list or compendium of functions/packages in R with the uniquely useful feature of being organized according to the “Data Science Workflow” presented in R for Data Science (https://r4ds.had.co.nz/explore-intro.html).",
+    "crumbs": [
+      "Module 1",
+      "Reproducible Projects in R"
+    ]
+  },
+  {
+    "objectID": "lessons/1_Quarto.html#create-a-quarto-project",
+    "href": "lessons/1_Quarto.html#create-a-quarto-project",
+    "title": "Reproducible Projects in R",
+    "section": "Create a Quarto Project",
+    "text": "Create a Quarto Project\nTo start things off, let’s everyone create a new project within which to work/learn.\n\nRstudio &gt; File &gt; New Quarto Project &gt; New Directory &gt; “New Project Wizard” opens\n\nProject Wizard:\n\nSpecify a name and path to the project\nNOTICE: “Quarto Website” option provides",
+    "crumbs": [
+      "Module 1",
+      "Reproducible Projects in R"
+    ]
+  },
+  {
+    "objectID": "lessons/1_Quarto.html#how-it-works",
+    "href": "lessons/1_Quarto.html#how-it-works",
+    "title": "Reproducible Projects in R",
+    "section": "How it works",
+    "text": "How it works\nLet me show you how you can use Quarto.\n\n\nOpen the .qmd file created with same name as the project\n\nWhen you’ve got multiple files open, Rstudio can store this information when you close\nYou can double click the “.Rproj” to open the project in the state you left it!\n\n\n\nYAML\n\nThe file starts with a yaml “header” between two “—”\n\nDefines format, behavior, rendered appearance\nAlso defines things like:\n\ntitle\nauthor\nformat\neditor\n\n\nThere is also a project-wide yaml file _quarto.yml.\n\nYou can control overall format and behavior with it.\nIt’s also where you can build out a Navigation bar if you have multiple linked pages in your project.\n\n\n\n---\nproject:\n  title: \"linear_models_intro\"\n\neditor: visual\n\nformat:\n  html:\n    toc: true\n    embed-resources: true\n    self-contained-math: true\n---\n\n\n\nMarkdown\n\nFormatting text\n\nHeadings using (e.g. #, ##, ###)\n\nDifferent from “COMMENTING” out code lines\n\nBolds (with **) and italics (*).\nLaTeX math\n\n\n\n\nLaTeX math\n\nInline with ($)\nFull display on own line with ($$)\n\nA superscript with (^), and underscore with (_)\nExample \\sigma^2_e renders as \\(\\sigma^2_e\\)\nYou can do more complicated super/subscripts, like so:\nx_{a^{b-c}} becomes \\[x_{a^{b-c}}\\]\nWhile \\frac{cov(x,y)}{var(x)} = \\hat{\\beta} renders as\n\\[\n\\frac{cov(x,y)}{var(x)} = \\hat{\\beta}\n\\]\nAnd much more.\nThere are plug-ins for Word and Google Docs that can read/render LaTeX equations.\n\n\nCode chunks\nIn your .qmd file, type Cmd + Option + I (Mac) or Ctrl + Alt + I (Win).\nShould create a “code chunk”, like this:\n```{r}\n# code here\n```\n\nNote the “Play” and other config. buttons\n\n\n\nRendering\n\nSave and press the “Render” button\n\nNOTE on Rendering Quarto Markdown: Rendering runs all code chunks. If you have a long-running, resource intensive project, structure it to avoid running that part during render. Use “````{r, eval=FALSE}`”.",
+    "crumbs": [
+      "Module 1",
+      "Reproducible Projects in R"
+    ]
+  },
+  {
+    "objectID": "lessons/1_Quarto.html#visual-vs.-source-editor",
+    "href": "lessons/1_Quarto.html#visual-vs.-source-editor",
+    "title": "Reproducible Projects in R",
+    "section": "Visual vs. Source Editor",
+    "text": "Visual vs. Source Editor\n\nAt the top left. Two options.\nOther navigation pro-tips\n\nThe “Outline” tab in the Editor (top right)\n\nCode folding",
+    "crumbs": [
+      "Module 1",
+      "Reproducible Projects in R"
+    ]
+  },
+  {
+    "objectID": "lessons/1_Quarto.html#objects-and-data-structures",
+    "href": "lessons/1_Quarto.html#objects-and-data-structures",
+    "title": "Reproducible Projects in R",
+    "section": "Objects and data structures",
+    "text": "Objects and data structures\n\n\n\n\n\n\nFigure 1: R Data structures – figure from https://www.dataquest.io/\n\n\n\n\nVectors\n\n# Atomic vectors\nx = c(1,2,3,4,5,6) # numerical vector\nx1 = c(1.2, 1.3,1.8, 2.9, 10.5,0.9) # numerical vectors\ny &lt;- c(\"A\", \"B\", \"A\") # character vector\nz = c(TRUE, TRUE, FALSE, FALSE) # logical vector\n\ndim(x)\n\nNULL\n\nas.matrix(x)\n\n     [,1]\n[1,]    1\n[2,]    2\n[3,]    3\n[4,]    4\n[5,]    5\n[6,]    6\n\ndim(as.matrix(x))\n\n[1] 6 1\n\n\nVectors may only have one type.\n\n\nMatrices\n\n# Matrix: vectors in more than one dimension \nX &lt;- matrix(c(1, 0,\n              1, 1,\n              1, 0), nrow = 3, byrow = TRUE)\n\nX\n\n     [,1] [,2]\n[1,]    1    0\n[2,]    1    1\n[3,]    1    0\n\ndim(X)\n\n[1] 3 2\n\n\nMatrices can also only have one type or the other (char, num, logi).\n\n\ndata.frames\n\ndf &lt;- data.frame(y = c(10, 12, 11),\n                 geno = factor(c(\"G1\", \"G2\", \"G1\")),\n                 block = factor(c(1, 1, 2)))\nstr(df)\n\n'data.frame':   3 obs. of  3 variables:\n $ y    : num  10 12 11\n $ geno : Factor w/ 2 levels \"G1\",\"G2\": 1 2 1\n $ block: Factor w/ 2 levels \"1\",\"2\": 1 1 2\n\n\n\nColumns = variables\nRows = observations\nmixed variable types\nTechnically, a special case of a list\n\n\n# Example in Genomics\nx = c(\"snp1\",\"snp2\", \"snp3\", \"snp4\", \"snp5\", \"snp6\")\ny = c(1,1,2,2,3,3)\nz = c(10,20,100,400,150,200)\nind1 = c(\"AA\", \"AA\", \"aa\", \"Aa\", \"aa\", \"AA\")\nind2 = c(\"AA\", \"AA\", \"aa\", \"Aa\", \"AA\", \"AA\")\nind3 = c(\"Aa\", \"AA\", \"aa\", \"Aa\", \"Aa\", \"aa\")\nind4 = c(\"aa\", \"AA\", \"Aa\", \"aa\", \"AA\", \"AA\")\n\nsnp_data = data.frame(name = x,chr = y,pos = z,ind1,ind2,ind3,ind4)\nsnp_data\n\n  name chr pos ind1 ind2 ind3 ind4\n1 snp1   1  10   AA   AA   Aa   aa\n2 snp2   1  20   AA   AA   AA   AA\n3 snp3   2 100   aa   aa   aa   Aa\n4 snp4   2 400   Aa   Aa   Aa   aa\n5 snp5   3 150   aa   AA   Aa   AA\n6 snp6   3 200   AA   AA   aa   AA\n\n\n\n\nFactors\n\nlevels(df$geno)\n\n[1] \"G1\" \"G2\"\n\n\nFactors add a layer of information (an attribute) called levels().\nUse them ONLY for specific purposes to avoid undesired behavior.\nTwo examples (demo later):\n\nFactor levels matter for design matrix creation. They control the ordering of columns in a model.matrix() call.\nFactor levels control the order of appearance of categories in a plot made with ggplot(). ### Lists\n\nContainers for anything. Mix any type.\n\nm &lt;- lm(y ~ geno + block, data = df)\nstr(m)\n\nList of 13\n $ coefficients : Named num [1:3] 10 2 1\n  ..- attr(*, \"names\")= chr [1:3] \"(Intercept)\" \"genoG2\" \"block2\"\n $ residuals    : Named num [1:3] 0 0 0\n  ..- attr(*, \"names\")= chr [1:3] \"1\" \"2\" \"3\"\n $ effects      : Named num [1:3] -19.053 -1.225 0.707\n  ..- attr(*, \"names\")= chr [1:3] \"(Intercept)\" \"genoG2\" \"block2\"\n $ rank         : int 3\n $ fitted.values: Named num [1:3] 10 12 11\n  ..- attr(*, \"names\")= chr [1:3] \"1\" \"2\" \"3\"\n $ assign       : int [1:3] 0 1 2\n $ qr           :List of 5\n  ..$ qr   : num [1:3, 1:3] -1.732 0.577 0.577 -0.577 -0.816 ...\n  .. ..- attr(*, \"dimnames\")=List of 2\n  .. .. ..$ : chr [1:3] \"1\" \"2\" \"3\"\n  .. .. ..$ : chr [1:3] \"(Intercept)\" \"genoG2\" \"block2\"\n  .. ..- attr(*, \"assign\")= int [1:3] 0 1 2\n  .. ..- attr(*, \"contrasts\")=List of 2\n  .. .. ..$ geno : chr \"contr.treatment\"\n  .. .. ..$ block: chr \"contr.treatment\"\n  ..$ qraux: num [1:3] 1.577 1.966 0.707\n  ..$ pivot: int [1:3] 1 2 3\n  ..$ tol  : num 1e-07\n  ..$ rank : int 3\n  ..- attr(*, \"class\")= chr \"qr\"\n $ df.residual  : int 0\n $ contrasts    :List of 2\n  ..$ geno : chr \"contr.treatment\"\n  ..$ block: chr \"contr.treatment\"\n $ xlevels      :List of 2\n  ..$ geno : chr [1:2] \"G1\" \"G2\"\n  ..$ block: chr [1:2] \"1\" \"2\"\n $ call         : language lm(formula = y ~ geno + block, data = df)\n $ terms        :Classes 'terms', 'formula'  language y ~ geno + block\n  .. ..- attr(*, \"variables\")= language list(y, geno, block)\n  .. ..- attr(*, \"factors\")= int [1:3, 1:2] 0 1 0 0 0 1\n  .. .. ..- attr(*, \"dimnames\")=List of 2\n  .. .. .. ..$ : chr [1:3] \"y\" \"geno\" \"block\"\n  .. .. .. ..$ : chr [1:2] \"geno\" \"block\"\n  .. ..- attr(*, \"term.labels\")= chr [1:2] \"geno\" \"block\"\n  .. ..- attr(*, \"order\")= int [1:2] 1 1\n  .. ..- attr(*, \"intercept\")= int 1\n  .. ..- attr(*, \"response\")= int 1\n  .. ..- attr(*, \".Environment\")=&lt;environment: R_GlobalEnv&gt; \n  .. ..- attr(*, \"predvars\")= language list(y, geno, block)\n  .. ..- attr(*, \"dataClasses\")= Named chr [1:3] \"numeric\" \"factor\" \"factor\"\n  .. .. ..- attr(*, \"names\")= chr [1:3] \"y\" \"geno\" \"block\"\n $ model        :'data.frame':  3 obs. of  3 variables:\n  ..$ y    : num [1:3] 10 12 11\n  ..$ geno : Factor w/ 2 levels \"G1\",\"G2\": 1 2 1\n  ..$ block: Factor w/ 2 levels \"1\",\"2\": 1 1 2\n  ..- attr(*, \"terms\")=Classes 'terms', 'formula'  language y ~ geno + block\n  .. .. ..- attr(*, \"variables\")= language list(y, geno, block)\n  .. .. ..- attr(*, \"factors\")= int [1:3, 1:2] 0 1 0 0 0 1\n  .. .. .. ..- attr(*, \"dimnames\")=List of 2\n  .. .. .. .. ..$ : chr [1:3] \"y\" \"geno\" \"block\"\n  .. .. .. .. ..$ : chr [1:2] \"geno\" \"block\"\n  .. .. ..- attr(*, \"term.labels\")= chr [1:2] \"geno\" \"block\"\n  .. .. ..- attr(*, \"order\")= int [1:2] 1 1\n  .. .. ..- attr(*, \"intercept\")= int 1\n  .. .. ..- attr(*, \"response\")= int 1\n  .. .. ..- attr(*, \".Environment\")=&lt;environment: R_GlobalEnv&gt; \n  .. .. ..- attr(*, \"predvars\")= language list(y, geno, block)\n  .. .. ..- attr(*, \"dataClasses\")= Named chr [1:3] \"numeric\" \"factor\" \"factor\"\n  .. .. .. ..- attr(*, \"names\")= chr [1:3] \"y\" \"geno\" \"block\"\n - attr(*, \"class\")= chr \"lm\"",
+    "crumbs": [
+      "Module 1",
+      "Reproducible Projects in R"
+    ]
+  },
+  {
+    "objectID": "lessons/1_Quarto.html#base-r",
+    "href": "lessons/1_Quarto.html#base-r",
+    "title": "Reproducible Projects in R",
+    "section": "Base R",
+    "text": "Base R\nVectors\n\ny[1]\n\n[1] 1\n\nz[2:3]\n\n[1]  20 100\n\nz[-c(1:5)]\n\n[1] 200\n\n\nMatrices\nmatrix[row,column]\n\nX[1:2,]\n\n     [,1] [,2]\n[1,]    1    0\n[2,]    1    1\n\n\ndata.frames\n\ndf[1,2]\n\n[1] G1\nLevels: G1 G2\n\ndf$geno\n\n[1] G1 G2 G1\nLevels: G1 G2\n\ndf[[\"geno\"]]\n\n[1] G1 G2 G1\nLevels: G1 G2\n\ndf[[\"geno\"]][1]\n\n[1] G1\nLevels: G1 G2\n\n\nLists\n\nm$coefficients\n\n(Intercept)      genoG2      block2 \n         10           2           1 \n\nm[1:2]\n\n$coefficients\n(Intercept)      genoG2      block2 \n         10           2           1 \n\n$residuals\n1 2 3 \n0 0 0 \n\nm[1:2][[\"residuals\"]]\n\n1 2 3 \n0 0 0 \n\nm[1:2][[\"residuals\"]][1]\n\n1 \n0",
+    "crumbs": [
+      "Module 1",
+      "Reproducible Projects in R"
+    ]
+  },
+  {
+    "objectID": "lessons/1_Quarto.html#tidyverse-style---dplyr",
+    "href": "lessons/1_Quarto.html#tidyverse-style---dplyr",
+    "title": "Reproducible Projects in R",
+    "section": "tidyverse style - dplyr + %>%",
+    "text": "tidyverse style - dplyr + %&gt;%\nLet’s add to the tool set.\nThe “tidyverse” series of package provides a huge amount of utility for clear, human-readable programming. You’ll learn it well following “R for Data Science”.\n\nlibrary(tidyverse)\n\nWarning: package 'ggplot2' was built under R version 4.5.2\n\n\nWarning: package 'readr' was built under R version 4.5.2\n\n\nFirst magrittr’s “pipe” function (%&gt;%).\n\n\n\nx %&gt;% f is equivalent to f(x)\nx %&gt;% f(y) is equivalent to f(x, y)\nx %&gt;% f %&gt;% g %&gt;% h is equivalent to h(g(f(x)))\n\nThe left-hand side is evaluated first, then passed as input to the right-hand side.\nAn argument placeholder exists to direct the input from left into the right side function. - x %&gt;% f(y, .) is equivalent to f(y, x) - x %&gt;% f(y, z = .) is equivalent to f(y, z = x)\nKeyboard Shortcut: Type CMD + Shift + M (Mac) or CTRL + Shift + M (Win) to make pipes (%&gt;%) easily\n\nsum(snp_data$chr)\n\n[1] 12\n\n# is equivalent to\nsnp_data$chr %&gt;% sum(.)\n\n[1] 12\n\n# or\nsnp_data$chr %&gt;% sum # for shortest\n\n[1] 12\n\n\nNow let’s add dplyr (https://dplyr.tidyverse.org/) “a grammar of data manipulation”.\n\nCheatsheet: https://biostats.w.uib.no/dplyr-a-simplified-cheat-sheet/\nmutate() adds new variables that are functions of existing variables\nselect() picks variables based on their names.\nfilter() picks cases based on their values.\nsummarise() reduces multiple values down to a single summary.\narrange() changes the ordering of the rows.\n\nLet’s use just filter() and select() now.\n\n# Filter for subsetting the rows of a data.frame\nsnp_data %&gt;% \n  filter(chr==1,\n         pos&lt;100)\n# Select to subset the columns and/or reorder them\nsnp_data %&gt;% \n  select(chr,pos,ind2:ind3)\n\n# Combo \nsnp_data %&gt;% \n  # pick out chromosome 2 only\n  filter(chr==2) %&gt;% \n  # select desired colulmns\n  select(chr,pos) %&gt;% \n  # grab a single column\n  .$pos %&gt;% \n  # pass it to a function like summary\n  summary",
+    "crumbs": [
+      "Module 1",
+      "Reproducible Projects in R"
+    ]
+  },
+  {
+    "objectID": "lessons/1_Quarto.html#addsubtractarithmetic",
+    "href": "lessons/1_Quarto.html#addsubtractarithmetic",
+    "title": "Reproducible Projects in R",
+    "section": "Add/Subtract/Arithmetic",
+    "text": "Add/Subtract/Arithmetic\n\n\n\n\n\n\nFigure 2: Element-wise operations – figure from https://www.dataquest.io/\n\n\n\n\n4+4 # sum\n3/3 # divide\nlog(10) # natural logarithm\nlog10(0.01) # base-10 logarithm\nexp(2.3) # exponential\n\n# Summary statistics\ntmp = c(1,2,3) # example\nmean(tmp) # mean\nvar(tmp) # variance\nsum(tmp) # sum\n\n# Summary statistic in data frame\nmean(snp_data$pos) # mean of a col in the data frame\nvar(snp_data$pos) # var of a col in the data frame\n\n# Example from https://www.dataquest.io/\nexam_grades &lt;- c(92, 90, 84, 95, 77, 92, 85)\nhomework_grades &lt;- c(87, 81, 95, 86, 85, 90, 88)\nsum_grades = exam_grades+ homework_grades\n\nRecall:\n\\[\ny = X\\beta + \\epsilon\n\\]",
+    "crumbs": [
+      "Module 1",
+      "Reproducible Projects in R"
+    ]
+  },
+  {
+    "objectID": "lessons/1_Quarto.html#matrix-multiplication",
+    "href": "lessons/1_Quarto.html#matrix-multiplication",
+    "title": "Reproducible Projects in R",
+    "section": "Matrix multiplication",
+    "text": "Matrix multiplication\n\nbeta &lt;- c(10, 2)\n\n# Matrix multiplication\nX %*% beta\n\n     [,1]\n[1,]   10\n[2,]   12\n[3,]   10\n\nbeta * beta\n\n[1] 100   4\n\nbeta %*% beta\n\n     [,1]\n[1,]  104\n\n\nCross products and transpose\n\nt(X) %*% X\n\n     [,1] [,2]\n[1,]    3    1\n[2,]    1    1\n\nt(X) %*% c(10, 12, 11)\n\n     [,1]\n[1,]   33\n[2,]   12\n\n\nInversion\nRecall that \\(A^{-1}A=AA^{-1}=1\\) defines an inverse matrix\n\nA&lt;-t(X) %*% X # make a square matrix\nA\n\n     [,1] [,2]\n[1,]    3    1\n[2,]    1    1\n\n\n\n# Invert it\nAinv&lt;-solve(A)\nAinv\n\n     [,1] [,2]\n[1,]  0.5 -0.5\n[2,] -0.5  1.5\n\n\n\nA%*%Ainv\n\n             [,1] [,2]\n[1,] 1.000000e+00    0\n[2,] 5.551115e-17    1\n\n\nRecall the OLS solution for a linear model:\n\\[\n\\hat{\\beta} = (X^TX)^{-1}X^Ty\n\\]\n\ny &lt;- c(10, 12, 11)\nsolve(t(X) %*% X) %*% t(X) %*% y\n\n     [,1]\n[1,] 10.5\n[2,]  1.5",
+    "crumbs": [
+      "Module 1",
+      "Reproducible Projects in R"
+    ]
+  },
+  {
+    "objectID": "lessons/about.html",
+    "href": "lessons/about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
+  }
+]
