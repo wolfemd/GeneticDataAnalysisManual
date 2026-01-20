@@ -163,7 +163,7 @@ Other navigation pro-tips
 
 # Reproducible Project Guidelines
 
-**File / Folder Organization**
+[**File / Folder Organization**]{.underline}
 
 No "best" way
 
@@ -533,7 +533,7 @@ t(X) %*% c(10, 12, 11)
 
 ```
 
-Inversion 
+Inversion
 
 Recall that $A^{-1}A=AA^{-1}=1$ defines an inverse matrix
 
@@ -541,7 +541,6 @@ Recall that $A^{-1}A=AA^{-1}=1$ defines an inverse matrix
 A<-t(X) %*% X # make a square matrix
 A
 ```
-
 
 ```{r}
 # Invert it
@@ -552,7 +551,6 @@ Ainv
 ```{r}
 A%*%Ainv
 ```
-
 
 Recall the OLS solution for a linear model:
 
@@ -567,26 +565,17 @@ solve(t(X) %*% X) %*% t(X) %*% y
 
 # Take some time
 
-Familiarize yourself with working in Rstudio, with Quarto markdown. 
+Familiarize yourself with working in Rstudio, with Quarto markdown.
 
-Things you might want to work on:
-1. Making code chunks
-2. Writing with LaTeX formulas
-3. Formatting text with markdown
-4. Navigating Rstudio
-5. Rendering your QMD
-6. Manipulating datasets with `dplyr`
-7. Writing pipelines with `%>%`
-8. Vector and Matrix Operations
+Things you might want to work on: 1. Making code chunks 2. Writing with LaTeX formulas 3. Formatting text with markdown 4. Navigating Rstudio 5. Rendering your QMD 6. Manipulating datasets with `dplyr` 7. Writing pipelines with `%>%` 8. Vector and Matrix Operations
 
 # Not (yet) covered
 
-- Additional `dplyr` functions
-- Plotting with `ggplot`
-- Functions
-- Loops (with `purrr`)
-- The answer to the ultimate question of life, the universe and everything
-
+-   Additional `dplyr` functions
+-   Plotting with `ggplot`
+-   Functions
+-   Loops (with `purrr`)
+-   The answer to the ultimate question of life, the universe and everything
 
 # References
 
