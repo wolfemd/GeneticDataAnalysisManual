@@ -11,9 +11,9 @@ This course covers statistical and computational foundations for analyzing genet
 
 ### Key Links
 
--   **Syllabus:** \<./syllabus.qmd\>
--   **Schedule:** \<./schedule.qmd\>
--   **Lecture Notes:** \<./lectures/lec01-intro.qmd\>
+-   **Syllabus:** *See Shared Google Doc* (or Canvas page)
+-   **Schedule:** *See Shared Google Doc* (or Canvas page)
+-   **Lecture Notes:** *See Shared Google Doc* (or Canvas page)
 -   **Course GitHub Repo:** <URL placeholder>
 
 ### Instructor
@@ -24,4 +24,5 @@ Department of Crop, Soil & Environmental Sciences, Auburn University
 
 ### Lessons
 
-[Lesson 1 - First steps in R](lessons/wk1_IntroR.html)
+-   [Lesson 1 - Reproducible data projects](lessons/1_Quarto.html)
+-   [Lesson 2 - Linear Models with Matrices](lessons/2_LinearModels.html)
