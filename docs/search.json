@@ -230,7 +230,7 @@
     "href": "lessons/2_LinearModels.html#your-task",
     "title": "Linear Models with Matrices",
     "section": "Your task",
-    "text": "Your task\n\nFind a balanced chunk of the data.\nBalance is going to mean a lack of missing data for most or all traits.\nI suggest taking out 2-4 site.years worth.\nSubset the dataset.\nPick a trait and follow t(Lortie 2017a, 2017b, 2017c)he steps we did above.\nStart simple with your modelling.\n\nQuestions:\n\nWhat are the potential sources of variation in the data? Write the model.\nWhat sources of variation are significant contributors to the model fit?\nWhich are the “best”performing Crimson Clovers?",
+    "text": "Your task\n\nFind a balanced chunk of the data.\nBalance is going to mean a lack of missing data for most or all traits.\nI suggest taking out 2-4 site.years worth.\nSubset the dataset.\nPick a trait and follow the steps we did above.\nStart simple with your modelling.\n\nQuestions:\n\nWhat are the potential sources of variation in the data? Write the model.\nWhat sources of variation are significant contributors to the model fit?\nWhich are the “best”performing Crimson Clovers?",
     "crumbs": [
       "Module 1",
       "Linear Models with Matrices"

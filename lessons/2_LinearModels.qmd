@@ -377,7 +377,7 @@ The CCBN "Advanced Line Trial" (ALT) for Crimson Clover (*Trifolium incarnatum*)
 -   Balance is going to mean a lack of missing data for most or all traits.
 -   I suggest taking out 2-4 site.years worth.
 -   Subset the dataset.
--   Pick a trait and follow t[@lortie2017; @lortie2017a; @lortie2017b]he steps we did above.
+-   Pick a trait and follow the steps we did above.
 -   Start simple with your modelling.
 
 [**Questions**]{.underline}**:**
