@@ -2,6 +2,439 @@
 title: "Linear Models with Matrices"
 author: "Marnin Wolfe"
 format: html
+bibliography: references.bib
+execute:
+  error: true
 ---
 
 **Previously**: [Reproducible Projects in R](1_Quarto.qmd)
+
+# Lesson plan
+
+My goals are to demonstrate:
+
+1.  The underlying mechanics of linear fixed-effects models using matrix operations in R
+2.  The use of `lm()` for ANOVA and regression
+
+First we'll use a small "toy" dataset. Easy to see the matrices.
+
+Then I'll introduce a real dataset, give you a hint how to subset it, and turn you loose to analyze it yourself.
+
+Steps we'll do:
+
+1.  Pose a question
+2.  Write the model
+3.  Estimate parameters with OLS
+    -   Solve "by hand" in R
+    -   Using the `lm()` function
+4.  Partition variability: ANOVA
+5.  Hypothesis testing: F-test, t-test - is the effect and/or the variance "significant"?
+
+# Simple example\*
+
+Our two favorite cultivars of clover:
+
+-   Cultivar A, the 4-leaf 🍀
+-   Cultivar B, the 3-leaf ☘️
+
+Which one is really best?
+
+We plant 8 plots. Four reps each cultivar.
+
+What influences variation in clover biomass?
+
+1.  Genetics? *i.e.* the cultivar identity (A vs. B)
+2.  The average performance of clovers? An overall (or grand) mean.
+3.  Error (random and otherwise)
+
+\*I'm borrowing from the excellent example by Dr. Felipe Ferrão [here](https://lfelipe-ferrao.github.io/class/mas/), also the example from Ch. 2 of @isik2017.
+
+Firstly, the model can be visually represented, first as a per-plant equation, then in a statistical, matrix notation, in words and a plot @fig-ferrao-visual-linear-model.
+
+![Visual representation about statistical models applied to genetics (from Ferrao 2024).](images/clipboard-3506412151.png){#fig-ferrao-visual-linear-model}
+
+::: {.callout-important icon="false"}
+## Remember
+
+"All models are wrong, some are useful." \~Box
+:::
+
+We make some simplifying assumptions, always.
+
+We are going to do **hypothesis testing**. For now, to determine if variances sources are contributing "significantly" to the data (F-test) and if the cultivar means are different (t-test).
+
+This is an important part of some of our main downstream goals, like marker-trait association (GWAS).
+
+Assumptions of linear models are:![](images/clipboard-544622567.png)
+
+-   Independence of errors (no 'autocorrelation')
+-   Lack of multi-collinearity (predictors not too correlated)
+
+## ANOVA with `lm()`
+
+Two parts of Analysis of Variance
+
+1.  Compute means
+2.  Compute deviations (sums of squares, mean squares)
+
+![Computing means and sums of squares for ANOVA](images/clipboard-1147621659.png){#fig-anova}
+
+And we can write the classical ANOVA table. Variance is partitioned into two components: **Among Groups** and **Within Groups**.
+
+| Source of Variation | Degrees of Freedom (DF) | Sum of Squares (SS) | Mean Square (MS) | F-value |
+|:--------------|:--------------|:--------------|:--------------|:--------------|
+| Among Groups | $\alpha−1$ | $SS_A=\sum_{i=1}^{\alpha} n_i ( \bar{y_i\cdot} - \bar{y\cdot\cdot})^2$ | $MS_A = \frac{SS_A}{\alpha-1}$ | $𝐹=\frac{MS_A}{MS_E}$ |
+| Within Groups | $𝑁−\alpha$ | $SS_E = \sum_{i=1}^\alpha \sum_{j=1}^{n_i} (y_{ij} - \bar{y_i\cdot})^2$ | $MS_E = \frac{SS_E}{N-\alpha}$ |  |
+| **Total** | $𝑁−1$ | $SS_T = \sum_{i=1}^\alpha \sum_{j=1}^{n_i} (y_{ij} - \bar{y_{\cdot\cdot}})^2$ |  |  |
+
+Where:
+
+-   $\alpha$ = number of groups
+-   $n$ = number of observations in group 𝑖
+-   $N$ = total number of observations
+-   $\bar{y_{i\cdot}}$ = mean of group 𝑖
+-   $\bar{y_{\cdot\cdot}}$ = grand mean
+
+Our goal is to partition tot. variance into sources.
+
+We compare the variance among groups (e.g. among genotypes) to the residual variance using a ratio of variances (the F-value).
+
+Basically, the F-test is looking for greater **signal** compared to **noise**. A high F-value means **among groups** \> **residual** and so group variance is probably important.
+
+```{r, message=F, warning=F}
+library(tidyverse)
+```
+
+```{r}
+# Create an example
+df <- data.frame(Replicate = 1:4,
+                 GenoA = c(14, 17, 15, 15),
+                 GenoB = c(11, 13, 10, 12)) 
+df <- df %>% 
+  # this will change the "wide" data frame to a "long" one
+  ## it stacks the values of GenoA and GenoB into a column labelled "Biomass"
+  ## and the col headers go to a new column "Genotype"
+  pivot_longer(cols = c(GenoA, GenoB),
+               names_to = "Genotype",
+               values_to = "Biomass") %>% 
+  # Make genotype and replicate into factors
+    mutate(Genotype=as.factor(Genotype),
+           # Replicate needs to be a factor-type
+           # because it should be treated as a categorical NOT a numerical variable
+           ### Replicate 4 doesn't come after Replicate 3 in any logical way.
+           Replicate=as.factor(Replicate))
+
+
+fit.lm <- lm(Biomass ~ Genotype, data = df)
+summary(fit.lm)
+```
+
+```{r}
+fit.aov<-aov(Biomass ~ Genotype, data = df)
+summary(fit.aov)
+```
+
+```{r}
+t.test(Biomass~Genotype,data = df)
+```
+
+Notice the way the coefficients are reported from `lm()`.
+
+It shows only an effect for `(Intercept)` and `GenotypeGenoB`.
+
+Initially, we wrote the model as
+
+$$
+y_{ij} = \mu + \tau_i + \epsilon_{ij}
+$$
+
+$i$ genotypes (1,2), $j$ replications (1,2,3,4)
+
+So our matrices and vectors looked like this:
+
+$$
+\begin{bmatrix}
+y_{11} \\
+y_{12} \\
+y_{13} \\
+y_{14} \\
+y_{21} \\
+y_{22} \\
+y_{23} \\
+y_{24}
+\end{bmatrix} =
+\begin{bmatrix}
+1 & 0 & 0 \\
+1 & 1 & 0 \\
+1 & 1 & 0 \\
+1 & 1 & 0 \\
+1 & 0 & 1 \\
+1 & 0 & 1 \\
+1 & 0 & 1 \\
+1 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+\mu \\
+\tau_1 \\
+\tau_2
+\end{bmatrix} +
+\begin{bmatrix}
+\epsilon_{11} \\
+\epsilon_{12} \\
+\epsilon_{13} \\
+\epsilon_{14} \\
+\epsilon_{21} \\
+\epsilon_{22} \\
+\epsilon_{23} \\
+\epsilon_{24}
+\end{bmatrix}
+$$
+
+This specification implies 3 coefficients would be estimated ($\mu$, $\tau_1$ and $\tau_2$).
+
+## Parameter estimation with OLS
+
+To see why the difference, let's first calculate the OLS solution "by hand"
+
+Recall from class that linear models with fixed-effects and simple residuals can be solved with a closed form approach that minimizes the residual sum of squares (RSS). This is called the "Ordinary Least Squares" solution (OLS).
+
+$$
+\hat{\beta} = (X'X)^{-1}X'y
+$$
+
+```{r}
+df
+```
+
+```{r}
+y<-df$Biomass
+
+# Because R is too smart, we'll have to make the X matrix shown above for a demo
+
+X<-matrix(c(1,1,1,1,1,1,1,1,
+            1,0,1,0,1,0,1,0,
+            0,1,0,1,0,1,0,1),
+          ncol=3)
+X
+```
+
+R provides a function called `model.matrix()` for constructing design matrices. What `model.matrix()` does, is what `lm()` and other software do.
+
+```{r}
+X1<-model.matrix(Biomass~Genotype,data = df)
+X1
+```
+
+```{r}
+XtX<-t(X)%*%X
+Xty<-t(X)%*%y
+beta_hat<-solve(XtX)%*%Xty
+```
+
+Singular = a square matrix that is not invertible
+
+A related term is "Rank" which refers to the number of linearly independent columns of a matrix.
+
+```{r}
+# What is the "rank" of XtX? Want it to be 3.
+qr(XtX)$rank
+```
+
+The XtX matrix is not "full rank" because columns 2 and 3 are numerical mirrors.
+
+There aren't enough degrees of freedom to express it this way.
+
+In R, functions like `lm()` will automatically constrain the model by contrasting levels against a reference (the first level of the factor).
+
+So $\tau_1 = 0$ and $\tau_2=1$.
+
+$$
+\begin{bmatrix}
+y_{11} \\
+y_{12} \\
+y_{13} \\
+y_{14} \\
+y_{21} \\
+y_{22} \\
+y_{23} \\
+y_{24}
+\end{bmatrix} =
+\begin{bmatrix}
+1 & 0 \\
+1 & 0 \\
+1 & 0 \\
+1 & 0 \\
+1 & 1 \\
+1 & 1 \\
+1 & 1 \\
+1 & 1
+\end{bmatrix}
+\begin{bmatrix}
+\mu \\
+\tau_2
+\end{bmatrix} +
+\begin{bmatrix}
+\epsilon_{11} \\
+\epsilon_{12} \\
+\epsilon_{13} \\
+\epsilon_{14} \\
+\epsilon_{21} \\
+\epsilon_{22} \\
+\epsilon_{23} \\
+\epsilon_{24}
+\end{bmatrix}
+$$
+
+```{r}
+beta_hat<-solve(t(X1)%*%X1)%*%(t(X1)%*%y)
+beta_hat
+```
+
+```{r}
+fit.lm$coefficients
+```
+
+Ta da! 🎉
+
+## Check assumptions
+
+```{r}
+plot(fit.lm)
+```
+
+## Estimated marginal means
+
+Our goal is often to compare the mean of different treatment groups, for example different genotypes.
+
+You may have encountered "lsmeans" or "emmeans" in the literature? Or if you use SAS.
+
+**Least squares means (LSMeans)**—now more commonly called **estimated marginal means (EMMs)**—are model-based estimates of factor level means derived from a fitted linear model (LM). They are related to the "best linear unbiased estimators" (BLUEs) in a linear mixed model; we'll get to all that later.
+
+```{r}
+library(emmeans)
+emmeans(fit.lm,"Genotype")
+```
+
+EMMs are not arithmetic means. They are predicted means from the fitted model. If there were additional factors in our model, they would evaluate our "Genotypes" averaging over the other factors/covariates.
+
+Look at how they are related to the coefficients from the OLS model.
+
+```{r}
+summary(fit.lm)
+```
+
+# Hands-on
+
+## Some real data
+
+Download the CCB Crimson Clover ALT dataset from Canvas.
+
+Put it in the `data/` sub-directory of your project.
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+Import the dataset
+
+```{r}
+alt<-read.csv(here::here("data","19-25CC_ALT_DATA_ALL_2025-08-23.csv"))
+
+str(alt)
+```
+
+```{r}
+alt %>% head
+```
+
+**About**
+
+The CCBN "Advanced Line Trial" (ALT) for Crimson Clover (*Trifolium incarnatum*) is a competitive variety trial. New "advanced line" bulks, created from top plants in CCBN nurseries, are compared against current best lines from other programs/years and commercial checks at up to 15 locations. Trials are conducted in **randomized complete block designs** with 15’ single-row plots flanked by triticale for competition; they assess biomass, vigor, winter survival, seed yield.
+
+![Map of Cover Crop Breeding Network Testing Sites](images/clipboard-2105868099.png){#fig-ccbn-map}
+
+![Example of a CCB ALT Layout - 24ALCC_ALT](images/clipboard-2521623883.png){#fig-cc-alt-layout}
+
+-   **`site`:** State Location Code
+-   **`year`:** Year HARVESTED (trials are planted in Fall, harvested Spring of following year)
+-   **`site.year`:** site-year combination
+-   **`unique.id`:** unique plot ID
+-   **`entry`:** Crimson Clover variety name.
+-   **`rep`:** *integer* - specifies a complete block within a given **site.year**
+-   **`row`:** Corresponds to one full planter pass. I'd prefer these to be called columns to match matrix conventions (row – by - column). But that's how CCB records it (see @fig-cc-alt-layout**).**
+-   **`range`:** Spanning a plot in the direct the planter drives. In matrix convention, this would be called the row 🤦 (see @fig-cc-alt-layout**).**
+-   **`biomass.1`:** plot dry mass in grams-per-linear-foot-harvested
+-   **`growth.stage.1`**: Khalu & Fick growth stage at time of harvest
+-   **`fall/springstandcount`:** percent of plot out of 100 with living plants, before/after winter.
+-   **`fall/spring.vigor.av`:** visual rating of plot vigor scored on a time-specific 1-9 scale (i.e. 1 = worst, 5 = average, 9 = best).
+-   **`wintersurvival`:** spring / fall standcount.
+
+## Your task
+
+-   Find a *balanced* chunk of the data.
+-   Balance is going to mean a lack of missing data for most or all traits.
+-   I suggest taking out 2-4 site.years worth.
+-   Subset the dataset.
+-   Pick a trait and follow t[@lortie2017; @lortie2017a; @lortie2017b]he steps we did above.
+-   Start simple with your modelling.
+
+[**Questions**]{.underline}**:**
+
+1.  What are the *potential* sources of variation in the data? Write the model.
+2.  What sources of variation are *significant* contributors to the model fit?
+3.  Which are the "best"performing Crimson Clovers?
+
+## Data summarization
+
+To find a good data chunk, you might want to make some summaries.
+
+Here's a nice tidy way to computing summary statistics on a dataset like this, using `group_by()` and `summarize()`
+
+```{r}
+# Example
+alt %>% 
+  filter(site=="AL") %>% 
+  group_by(site.year) %>% 
+  summarize(PropMissingBiomass=length(which(is.na(biomass.1)))/n(),
+            Nentries=length(unique(entry)),
+            Nobs=n())
+
+# Does the code for computing "PropMissingBiomass" look confusing? 
+# To learn, break down each piece of the code and see what it does
+# Like this
+## alt$biomass.1 %>% is.na
+## alt$biomass.1 %>% is.na %>% which
+## length(which(is.na(alt$biomass.1)))/nrow(alt)
+```
+
+Having chosen the 2 AL site-years (for an example), I can split off a new data.frame for future use.
+
+```{r, eval=F}
+al_alt<-alt %>% 
+  filter(site=="AL")
+```
+
+## Plotting data
+
+I like to use `ggplot` for plotting in R.
+
+A great place to learn that is the [Visualize chapter in R for Data Science](https://r4ds.hadley.nz/visualize.html).
+
+To show it off, I'll make a histogram of the distribution of *each trait* in the dataset.
+
+A bit of data transformation is needed, using `pivot_longer` to make a long-form dataset.
+
+```{r}
+alt %>% 
+  pivot_longer(cols = c(biomass.1:wintersurvival),
+               names_to = "Trait",
+               values_to = "Value") %>% 
+  ggplot(.,aes(x=Value,fill=Trait)) + geom_density() + 
+  facet_wrap(~Trait, scales='free')
+```
+
+# Next
+
+That's it for today.
+
+In the next session(s) we will introduce linear *mixed* models and related concepts. We'll return with [Hands-on Lesson 3 on Mixed Models](3_MixedModels.qmd) and learn 3 packages (`lme4::lmer()`, `sommer::mmes()`, `asreml()`).

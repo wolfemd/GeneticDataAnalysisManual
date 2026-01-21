@@ -96,6 +96,8 @@ format:
 
 ### Markdown
 
+For the authoritative documentation: <https://quarto.org/docs/authoring/markdown-basics.html>
+
 -   Formatting text
     -   Headings using (e.g. `#`, `##`, `###`)
         -   Different from "COMMENTING" out code lines
@@ -567,7 +569,16 @@ solve(t(X) %*% X) %*% t(X) %*% y
 
 Familiarize yourself with working in Rstudio, with Quarto markdown.
 
-Things you might want to work on: 1. Making code chunks 2. Writing with LaTeX formulas 3. Formatting text with markdown 4. Navigating Rstudio 5. Rendering your QMD 6. Manipulating datasets with `dplyr` 7. Writing pipelines with `%>%` 8. Vector and Matrix Operations
+Things you might want to work on:
+
+1.  Making code chunks
+2.  Writing with LaTeX formulas
+3.  Formatting text with markdown
+4.  Navigating Rstudio
+5.  Rendering your QMD
+6.  Manipulating data with `dplyr`
+7.  Writing pipelines with `%>%`
+8.  Vector and Matrix Operations
 
 # Not (yet) covered
 
