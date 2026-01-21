@@ -1,5 +1,5 @@
 ---
-title: "Genetic Data Analysis – Spring 2026"
+title: "Genetic Data Analysis Manual"
 author: Marnin Wolfe
 university: Auburn University
 department: CSES
@@ -14,7 +14,7 @@ This course covers statistical and computational foundations for analyzing genet
 -   **Syllabus:** *See Shared Google Doc* (or Canvas page)
 -   **Schedule:** *See Shared Google Doc* (or Canvas page)
 -   **Lecture Notes:** *See Shared Google Doc* (or Canvas page)
--   **Course GitHub Repo:** <URL placeholder>
+-   **Course GitHub Repo:** <https://github.com/wolfemd/GeneticDataAnalysisManual>
 
 ### Instructor
 

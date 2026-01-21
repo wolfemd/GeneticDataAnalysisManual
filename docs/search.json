@@ -2,9 +2,9 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "Genetic Data Analysis – Spring 2026",
+    "title": "Genetic Data Analysis Manual",
     "section": "",
-    "text": "Welcome to Genetic Data Analysis (CSES 7160) at Auburn University.\nThis course covers statistical and computational foundations for analyzing genetic, genomic, and phenotypic data in crop science, with an emphasis on reproducible workflows using R, Quarto, GitHub, and modern mixed-model approaches.\n\nKey Links\n\nSyllabus: See Shared Google Doc (or Canvas page)\nSchedule: See Shared Google Doc (or Canvas page)\nLecture Notes: See Shared Google Doc (or Canvas page)\nCourse GitHub Repo: \n\n\n\nInstructor\nDr. Marnin D. Wolfe\nAssistant Professor, Quantitative Genetics\nDepartment of Crop, Soil & Environmental Sciences, Auburn University\n\n\nLessons\n\nLesson 1 - Reproducible data projects\nLesson 2 - Linear Models with Matrices",
+    "text": "Welcome to Genetic Data Analysis (CSES 7160) at Auburn University.\nThis course covers statistical and computational foundations for analyzing genetic, genomic, and phenotypic data in crop science, with an emphasis on reproducible workflows using R, Quarto, GitHub, and modern mixed-model approaches.\n\nKey Links\n\nSyllabus: See Shared Google Doc (or Canvas page)\nSchedule: See Shared Google Doc (or Canvas page)\nLecture Notes: See Shared Google Doc (or Canvas page)\nCourse GitHub Repo: https://github.com/wolfemd/GeneticDataAnalysisManual\n\n\n\nInstructor\nDr. Marnin D. Wolfe\nAssistant Professor, Quantitative Genetics\nDepartment of Crop, Soil & Environmental Sciences, Auburn University\n\n\nLessons\n\nLesson 1 - Reproducible data projects\nLesson 2 - Linear Models with Matrices",
     "crumbs": [
       "Home"
     ]
@@ -230,7 +230,7 @@
     "href": "lessons/2_LinearModels.html#your-task",
     "title": "Linear Models with Matrices",
     "section": "Your task",
-    "text": "Your task\n\nFind a balanced chunk of the data.\nBalance is going to mean a lack of missing data for most or all traits.\nI suggest taking out 2-4 site.years worth.\nSubset the dataset.\nPick a trait and follow the steps we did above.\nStart simple with your modelling.\n\nQuestions:\n\nWhat are the potential sources of variation in the data? Write the model.\nWhat sources of variation are significant contributors to the model fit?\nWhich are the “best”performing Crimson Clovers?",
+    "text": "Your task\n\nFind a balanced chunk of the data.\nBalance is going to mean a lack of missing data for most or all traits.\nI suggest taking out 2-4 site.years worth.\nSubset the dataset.\nPick a trait and follow t(Lortie 2017a, 2017b, 2017c)he steps we did above.\nStart simple with your modelling.\n\nQuestions:\n\nWhat are the potential sources of variation in the data? Write the model.\nWhat sources of variation are significant contributors to the model fit?\nWhich are the “best”performing Crimson Clovers?",
     "crumbs": [
       "Module 1",
       "Linear Models with Matrices"
@@ -242,6 +242,28 @@
     "title": "Linear Models with Matrices",
     "section": "Subset the data",
     "text": "Subset the data\nThen I’ll introduce a real dataset, give you a hint how to subset it, and turn you loose to analyze it yourself.\nSteps we’ll do:\n\nPose a question\nWrite the model\nEstimate parameters with OLS\n\nSolve “by hand” in R\nUsing the lm() function\n\nPartition variability: ANOVA\nHypothesis testing: F-test, t-test - is the effect and/or the variance “significant”?",
+    "crumbs": [
+      "Module 1",
+      "Linear Models with Matrices"
+    ]
+  },
+  {
+    "objectID": "lessons/2_LinearModels.html#data-summarization",
+    "href": "lessons/2_LinearModels.html#data-summarization",
+    "title": "Linear Models with Matrices",
+    "section": "Data summarization",
+    "text": "Data summarization\nTo find a good data chunk, you might want to make some summaries.\nHere’s a nice tidy way to computing summary statistics on a dataset like this, using group_by() and summarize()\n\n# Example\nalt %&gt;% \n  filter(site==\"AL\") %&gt;% \n  group_by(site.year) %&gt;% \n  summarize(PropMissingBiomass=length(which(is.na(biomass.1)))/n(),\n            Nentries=length(unique(entry)),\n            Nobs=n())\n\n# A tibble: 2 × 4\n  site.year PropMissingBiomass Nentries  Nobs\n  &lt;chr&gt;                  &lt;dbl&gt;    &lt;int&gt; &lt;int&gt;\n1 24AL                       0       28    56\n2 25AL                       0       30    60\n\n# Does the code for computing \"PropMissingBiomass\" look confusing? \n# To learn, break down each piece of the code and see what it does\n# Like this\n## alt$biomass.1 %&gt;% is.na\n## alt$biomass.1 %&gt;% is.na %&gt;% which\n## length(which(is.na(alt$biomass.1)))/nrow(alt)\n\nHaving chosen the 2 AL site-years (for an example), I can split off a new data.frame for future use.\n\nal_alt&lt;-alt %&gt;% \n  filter(site==\"AL\")",
+    "crumbs": [
+      "Module 1",
+      "Linear Models with Matrices"
+    ]
+  },
+  {
+    "objectID": "lessons/2_LinearModels.html#plotting-data",
+    "href": "lessons/2_LinearModels.html#plotting-data",
+    "title": "Linear Models with Matrices",
+    "section": "Plotting data",
+    "text": "Plotting data\nI like to use ggplot for plotting in R.\nA great place to learn that is the Visualize chapter in R for Data Science.\nTo show it off, I’ll make a histogram of the distribution of each trait in the dataset.\nA bit of data transformation is needed, using pivot_longer to make a long-form dataset.\n\nalt %&gt;% \n  pivot_longer(cols = c(biomass.1:wintersurvival),\n               names_to = \"Trait\",\n               values_to = \"Value\") %&gt;% \n  ggplot(.,aes(x=Value,fill=Trait)) + geom_density() + \n  facet_wrap(~Trait, scales='free')\n\nWarning: Removed 4531 rows containing non-finite outside the scale range\n(`stat_density()`).",
     "crumbs": [
       "Module 1",
       "Linear Models with Matrices"
