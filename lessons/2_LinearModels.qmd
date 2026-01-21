@@ -298,7 +298,9 @@ Ta da! 🎉
 
 ## Check assumptions
 
-```{r}
+```{r, eval=F}
+hist(residuals(fit.lm))
+plot(x = fitted(fit.lm), y = residuals(fit.lm))
 plot(fit.lm)
 ```
 
