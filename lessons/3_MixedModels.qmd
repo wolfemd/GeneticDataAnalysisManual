@@ -10,11 +10,11 @@ execute:
 
 # Lesson plan
 
-Our goal now is to 
+Our goal now is to
 
-1. Demonstrate the difference between fixed and mixed-effects models. 
-2. Learn simple mixed-modelling in R using `lmer()`
-3. Hypothesis testing of variance components
+1.  Demonstrate the difference between fixed and mixed-effects models.
+2.  Learn simple mixed-modelling in R using `lmer()`
+3.  Hypothesis testing of variance components
 
 ```{r, message=F, warning=F}
 library(tidyverse)
@@ -114,6 +114,7 @@ head(entry_means)
 ```
 
 Try to extract the estimated marginal means (aka the least-square means) from the fixed-model.
+
 ```{r}
 
 library(emmeans)
@@ -201,7 +202,7 @@ Recall that:
 
 ## Propose a mixed-model
 
-$$y_{ij} = Y_i + \textbf{R(Y)_{ij}} + \textbf{G_k} + \textbf{GY_{ik}} + e_{ijk}$$
+$$y_{ij} = Y_i + R(Y)_{ij} + G_k + GY_{ik} + e_{ijk}$$
 
 -   $\mu$ grand mean, intercept
 -   $Y_i$ effect of year *i*
@@ -224,7 +225,6 @@ In the next lesson, we'll learn `asreml` and/or `sommer`, which can handle more 
 ```{r, message=F, warning=F}
 library(lme4)
 ```
-
 
 ```{r}
 mm<-lmer(biomass.1 ~site.year + (1|rep) + (1|entry) + (1|entry:site.year),
@@ -317,13 +317,11 @@ blups_vs_means %>%
 
 If your data are completely balanced, the BLUP should be equal to the BLUE (but centered on zero).
 
-If there is missing data, or heterogeneity in the number of observations, BLUPs will shrink values towards the mean. 
-Factor levels with fewer observations will be more shrunken then those with many. 
-Intuitively, this is reflecting our confidence about the prediction when there is more data. 
+If there is missing data, or heterogeneity in the number of observations, BLUPs will shrink values towards the mean. Factor levels with fewer observations will be more shrunken then those with many. Intuitively, this is reflecting our confidence about the prediction when there is more data.
 
 $$BLUP_k = BLUE_k \times \frac{1}{1+\lambda}$$
 
-Where, $\lambda = \frac{\sigma^2_e}{\sigma^2_u}$. 
+Where, $\lambda = \frac{\sigma^2_e}{\sigma^2_u}$.
 
 Can also be written as:
 
@@ -331,10 +329,9 @@ $$BLUP_k = (\hat{\mu}_k - \hat{\mu})
   \times \left(\dfrac{\hat{\sigma}^2_g}{\hat{\sigma}^2_g +
   \frac{\hat{\sigma}^2_e}{r_k}} \right)$$
 
-Notice that $\lambda$ shrinks towards zero when $\sigma^2_u$ is large and $\sigma^2_e$ becomes small. 
-When $\lambda$ is $\approx 0$ then $BLUP_k \approx BLUE_k$.  
+Notice that $\lambda$ shrinks towards zero when $\sigma^2_u$ is large and $\sigma^2_e$ becomes small. When $\lambda$ is $\approx 0$ then $BLUP_k \approx BLUE_k$.
 
-To demonstrate, I make some plots below to compare raw data, entry means and BLUPs. 
+To demonstrate, I make some plots below to compare raw data, entry means and BLUPs.
 
 ```{r}
 blups_vs_means %>% 
@@ -370,11 +367,10 @@ blups_vs_means %>%
 
 Several connections to our downstream purposes:
 
-1. Mixed-model analysis will enable us the flexiblity to accommodate real data structure
-2. Mixed-model variance component estimates are used in genetic analysis to compute the genetic and environmental components. The ratio of genetic to total variance (or **heritability**, $h^2$ is a critical one in quantitative genetics). 
-3. BLUEs or BLUPs are often sometimes as the response variable (the genetic component) of the phenotype in downstream GWAS/GP. 
-4. For plant breeding, BLUP accounts for the risk of promoting a seemingly exceptional line based on too little data.
-
+1.  Mixed-model analysis will enable us the flexiblity to accommodate real data structure
+2.  Mixed-model variance component estimates are used in genetic analysis to compute the genetic and environmental components. The ratio of genetic to total variance (or **heritability**, $h^2$ is a critical one in quantitative genetics).
+3.  BLUEs or BLUPs are often sometimes as the response variable (the genetic component) of the phenotype in downstream GWAS/GP.
+4.  For plant breeding, BLUP accounts for the risk of promoting a seemingly exceptional line based on too little data.
 
 # Hands-on
 
@@ -400,11 +396,8 @@ Several connections to our downstream purposes:
 
 That's it for today.
 
-In the next session we will get into more complex variance-covariance structures using primarily `asreml()`. 
+In the next session we will get into more complex variance-covariance structures using primarily `asreml()`.
 
-Other topics will include:
-1. Model comparison with AIC/BIC
-2. Data wrangling and exploratory data anlaysis
-3. Loops, Functions --> e.g. for analyzing multiple traits
+Other topics will include: 1. Model comparison with AIC/BIC 2. Data wrangling and exploratory data anlaysis 3. Loops, Functions --\> e.g. for analyzing multiple traits
 
-We'll return with [Hands-on Lesson 4 - More on Mixed Models](4_MoreMixedModels.qmd). 
+We'll return with [Hands-on Lesson 4 - More on Mixed Models](4_MoreMixedModels.qmd).
