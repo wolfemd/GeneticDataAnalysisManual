@@ -115,7 +115,9 @@ Example `\sigma^2_e` renders as $\sigma^2_e$
 
 You can do more complicated super/subscripts, like so:
 
-`x_{a^{b-c}}` becomes $$x_{a^{b-c}}$$
+`x_{a^{b-c}}` becomes 
+
+$$x_{a^{b-c}}$$
 
 While `\frac{cov(x,y)}{var(x)} = \hat{\beta}` renders as
 

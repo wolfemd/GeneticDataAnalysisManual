@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Genetic Data Analysis Manual",
     "section": "",
-    "text": "Welcome to Genetic Data Analysis (CSES 7160) at Auburn University.\nThis course covers statistical and computational foundations for analyzing genetic, genomic, and phenotypic data in crop science, with an emphasis on reproducible workflows using R, Quarto, GitHub, and modern mixed-model approaches.\n\nKey Links\n\nSyllabus: See Shared Google Doc (or Canvas page)\nSchedule: See Shared Google Doc (or Canvas page)\nLecture Notes: See Shared Google Doc (or Canvas page)\nCourse GitHub Repo: https://github.com/wolfemd/GeneticDataAnalysisManual\n\n\n\nInstructor\nDr. Marnin D. Wolfe\nAssistant Professor, Quantitative Genetics\nDepartment of Crop, Soil & Environmental Sciences, Auburn University\n\n\nLessons\n\nLesson 1 - Reproducible data projects\nLesson 2 - Linear Models with Matrices",
+    "text": "Welcome to Genetic Data Analysis (CSES 7160) at Auburn University.\nThis course covers statistical and computational foundations for analyzing genetic, genomic, and phenotypic data in crop science, with an emphasis on reproducible workflows using R, Quarto, GitHub, and modern mixed-model approaches.\n\nKey Links\n\nSyllabus: See Shared Google Doc (or Canvas page)\nSchedule: See Shared Google Doc (or Canvas page)\nLecture Notes: See Shared Google Doc (or Canvas page)\nCourse GitHub Repo: https://github.com/wolfemd/GeneticDataAnalysisManual\n\n\n\nInstructor\nDr. Marnin D. Wolfe\nAssistant Professor, Quantitative Genetics\nDepartment of Crop, Soil & Environmental Sciences, Auburn University\n\n\nLessons\n\nLesson 1 - Reproducible data projects\nLesson 2 - Linear Models with Matrices\nLesson 3 - Genetic Analysis with Mixed Models",
     "crumbs": [
       "Home"
     ]
@@ -47,7 +47,7 @@
     "href": "lessons/1_Quarto.html#how-it-works",
     "title": "Reproducible Projects in R",
     "section": "How it works",
-    "text": "How it works\nLet me show you how you can use Quarto.\n\n\nOpen the .qmd file created with same name as the project\n\nWhen you’ve got multiple files open, Rstudio can store this information when you close\nYou can double click the “.Rproj” to open the project in the state you left it!\n\n\n\nYAML\n\nThe file starts with a yaml “header” between two “—”\n\nDefines format, behavior, rendered appearance\nAlso defines things like:\n\ntitle\nauthor\nformat\neditor\n\n\nThere is also a project-wide yaml file _quarto.yml.\n\nYou can control overall format and behavior with it.\nIt’s also where you can build out a Navigation bar if you have multiple linked pages in your project.\n\n\n\n---\nproject:\n  title: \"linear_models_intro\"\n\neditor: visual\n\nformat:\n  html:\n    toc: true\n    embed-resources: true\n    self-contained-math: true\n---\n\n\n\nMarkdown\nFor the authoritative documentation: https://quarto.org/docs/authoring/markdown-basics.html\n\nFormatting text\n\nHeadings using (e.g. #, ##, ###)\n\nDifferent from “COMMENTING” out code lines\n\nBolds (with **) and italics (*).\nLaTeX math\n\n\n\n\nLaTeX math\n\nInline with ($)\nFull display on own line with ($$)\n\nA superscript with (^), and underscore with (_)\nExample \\sigma^2_e renders as \\(\\sigma^2_e\\)\nYou can do more complicated super/subscripts, like so:\nx_{a^{b-c}} becomes \\[x_{a^{b-c}}\\]\nWhile \\frac{cov(x,y)}{var(x)} = \\hat{\\beta} renders as\n\\[\n\\frac{cov(x,y)}{var(x)} = \\hat{\\beta}\n\\]\nAnd much more.\nThere are plug-ins for Word and Google Docs that can read/render LaTeX equations.\n\n\nCode chunks\nIn your .qmd file, type Cmd + Option + I (Mac) or Ctrl + Alt + I (Win).\nShould create a “code chunk”, like this:\n```{r}\n# code here\n```\n\nNote the “Play” and other config. buttons\n\n\n\nRendering\n\nSave and press the “Render” button\n\nNOTE on Rendering Quarto Markdown: Rendering runs all code chunks. If you have a long-running, resource intensive project, structure it to avoid running that part during render. Use “````{r, eval=FALSE}`”.",
+    "text": "How it works\nLet me show you how you can use Quarto.\n\n\nOpen the .qmd file created with same name as the project\n\nWhen you’ve got multiple files open, Rstudio can store this information when you close\nYou can double click the “.Rproj” to open the project in the state you left it!\n\n\n\nYAML\n\nThe file starts with a yaml “header” between two “—”\n\nDefines format, behavior, rendered appearance\nAlso defines things like:\n\ntitle\nauthor\nformat\neditor\n\n\nThere is also a project-wide yaml file _quarto.yml.\n\nYou can control overall format and behavior with it.\nIt’s also where you can build out a Navigation bar if you have multiple linked pages in your project.\n\n\n\n---\nproject:\n  title: \"linear_models_intro\"\n\neditor: visual\n\nformat:\n  html:\n    toc: true\n    embed-resources: true\n    self-contained-math: true\n---\n\n\n\nMarkdown\nFor the authoritative documentation: https://quarto.org/docs/authoring/markdown-basics.html\n\nFormatting text\n\nHeadings using (e.g. #, ##, ###)\n\nDifferent from “COMMENTING” out code lines\n\nBolds (with **) and italics (*).\nLaTeX math\n\n\n\n\nLaTeX math\n\nInline with ($)\nFull display on own line with ($$)\n\nA superscript with (^), and underscore with (_)\nExample \\sigma^2_e renders as \\(\\sigma^2_e\\)\nYou can do more complicated super/subscripts, like so:\nx_{a^{b-c}} becomes\n\\[x_{a^{b-c}}\\]\nWhile \\frac{cov(x,y)}{var(x)} = \\hat{\\beta} renders as\n\\[\n\\frac{cov(x,y)}{var(x)} = \\hat{\\beta}\n\\]\nAnd much more.\nThere are plug-ins for Word and Google Docs that can read/render LaTeX equations.\n\n\nCode chunks\nIn your .qmd file, type Cmd + Option + I (Mac) or Ctrl + Alt + I (Win).\nShould create a “code chunk”, like this:\n```{r}\n# code here\n```\n\nNote the “Play” and other config. buttons\n\n\n\nRendering\n\nSave and press the “Render” button\n\nNOTE on Rendering Quarto Markdown: Rendering runs all code chunks. If you have a long-running, resource intensive project, structure it to avoid running that part during render. Use “````{r, eval=FALSE}`”.",
     "crumbs": [
       "Module 1",
       "Reproducible Projects in R"
@@ -91,7 +91,7 @@
     "href": "lessons/1_Quarto.html#tidyverse-style---dplyr",
     "title": "Reproducible Projects in R",
     "section": "tidyverse style - dplyr + %>%",
-    "text": "tidyverse style - dplyr + %&gt;%\nLet’s add to the tool set.\nThe “tidyverse” series of package provides a huge amount of utility for clear, human-readable programming. You’ll learn it well following “R for Data Science”.\n\nlibrary(tidyverse)\n\nWarning: package 'ggplot2' was built under R version 4.5.2\n\n\nWarning: package 'readr' was built under R version 4.5.2\n\n\nFirst magrittr’s “pipe” function (%&gt;%).\n\n\n\nx %&gt;% f is equivalent to f(x)\nx %&gt;% f(y) is equivalent to f(x, y)\nx %&gt;% f %&gt;% g %&gt;% h is equivalent to h(g(f(x)))\n\nThe left-hand side is evaluated first, then passed as input to the right-hand side.\nAn argument placeholder exists to direct the input from left into the right side function. - x %&gt;% f(y, .) is equivalent to f(y, x) - x %&gt;% f(y, z = .) is equivalent to f(y, z = x)\nKeyboard Shortcut: Type CMD + Shift + M (Mac) or CTRL + Shift + M (Win) to make pipes (%&gt;%) easily\n\nsum(snp_data$chr)\n\n[1] 12\n\n# is equivalent to\nsnp_data$chr %&gt;% sum(.)\n\n[1] 12\n\n# or\nsnp_data$chr %&gt;% sum # for shortest\n\n[1] 12\n\n\nNow let’s add dplyr (https://dplyr.tidyverse.org/) “a grammar of data manipulation”.\n\nCheatsheet: https://biostats.w.uib.no/dplyr-a-simplified-cheat-sheet/\nmutate() adds new variables that are functions of existing variables\nselect() picks variables based on their names.\nfilter() picks cases based on their values.\nsummarise() reduces multiple values down to a single summary.\narrange() changes the ordering of the rows.\n\nLet’s use just filter() and select() now.\n\n# Filter for subsetting the rows of a data.frame\nsnp_data %&gt;% \n  filter(chr==1,\n         pos&lt;100)\n# Select to subset the columns and/or reorder them\nsnp_data %&gt;% \n  select(chr,pos,ind2:ind3)\n\n# Combo \nsnp_data %&gt;% \n  # pick out chromosome 2 only\n  filter(chr==2) %&gt;% \n  # select desired colulmns\n  select(chr,pos) %&gt;% \n  # grab a single column\n  .$pos %&gt;% \n  # pass it to a function like summary\n  summary",
+    "text": "tidyverse style - dplyr + %&gt;%\nLet’s add to the tool set.\nThe “tidyverse” series of package provides a huge amount of utility for clear, human-readable programming. You’ll learn it well following “R for Data Science”.\n\nlibrary(tidyverse)\n\nWarning: package 'ggplot2' was built under R version 4.5.2\n\n\nWarning: package 'tibble' was built under R version 4.5.2\n\n\nWarning: package 'tidyr' was built under R version 4.5.2\n\n\nWarning: package 'readr' was built under R version 4.5.2\n\n\nWarning: package 'purrr' was built under R version 4.5.2\n\n\nFirst magrittr’s “pipe” function (%&gt;%).\n\n\n\nx %&gt;% f is equivalent to f(x)\nx %&gt;% f(y) is equivalent to f(x, y)\nx %&gt;% f %&gt;% g %&gt;% h is equivalent to h(g(f(x)))\n\nThe left-hand side is evaluated first, then passed as input to the right-hand side.\nAn argument placeholder exists to direct the input from left into the right side function. - x %&gt;% f(y, .) is equivalent to f(y, x) - x %&gt;% f(y, z = .) is equivalent to f(y, z = x)\nKeyboard Shortcut: Type CMD + Shift + M (Mac) or CTRL + Shift + M (Win) to make pipes (%&gt;%) easily\n\nsum(snp_data$chr)\n\n[1] 12\n\n# is equivalent to\nsnp_data$chr %&gt;% sum(.)\n\n[1] 12\n\n# or\nsnp_data$chr %&gt;% sum # for shortest\n\n[1] 12\n\n\nNow let’s add dplyr (https://dplyr.tidyverse.org/) “a grammar of data manipulation”.\n\nCheatsheet: https://biostats.w.uib.no/dplyr-a-simplified-cheat-sheet/\nmutate() adds new variables that are functions of existing variables\nselect() picks variables based on their names.\nfilter() picks cases based on their values.\nsummarise() reduces multiple values down to a single summary.\narrange() changes the ordering of the rows.\n\nLet’s use just filter() and select() now.\n\n# Filter for subsetting the rows of a data.frame\nsnp_data %&gt;% \n  filter(chr==1,\n         pos&lt;100)\n# Select to subset the columns and/or reorder them\nsnp_data %&gt;% \n  select(chr,pos,ind2:ind3)\n\n# Combo \nsnp_data %&gt;% \n  # pick out chromosome 2 only\n  filter(chr==2) %&gt;% \n  # select desired colulmns\n  select(chr,pos) %&gt;% \n  # grab a single column\n  .$pos %&gt;% \n  # pass it to a function like summary\n  summary",
     "crumbs": [
       "Module 1",
       "Reproducible Projects in R"
@@ -272,9 +272,13 @@
   {
     "objectID": "lessons/3_MixedModels.html",
     "href": "lessons/3_MixedModels.html",
-    "title": "Linear Mixed Models",
+    "title": "Intro to Mixed Models",
     "section": "",
-    "text": "Previously: Reproducible Projects in R"
+    "text": "Previously: Reproducible Projects in R",
+    "crumbs": [
+      "Module 1",
+      "Intro to Mixed Models"
+    ]
   },
   {
     "objectID": "lessons/3_MixedModels.html#exploratory-data-analysis",
@@ -282,5 +286,63 @@
     "title": "Linear Mixed Models",
     "section": "Exploratory data analysis",
     "text": "Exploratory data analysis\n\nLater, we’ll take some time. Practice using R, especially dplyr and related tidyverse functions to summarize and get to know the dataset.\n\n\nTransforming data\npivot_wider() pivot_longer() group_by() + nest()\n\n\nAnalyzing multiple traits\npurrr()\nFunctions?\n\n\nSummary statistics\n\n\nTrait distributions"
+  },
+  {
+    "objectID": "lessons/3_MixedModels.html#fixed-vs.-random",
+    "href": "lessons/3_MixedModels.html#fixed-vs.-random",
+    "title": "Intro to Mixed Models",
+    "section": "Fixed vs. Random",
+    "text": "Fixed vs. Random\nRecall that:\n\nFixed-effects: A fixed effect is a parameter that does not vary.\nRandom-effects: An effect whose value depends on “random” events\n\nWhat is your objective?\n\nFixed - compare specific levels of factor\nRand - conclusions drawn from larger universe of interest\n\nWhat units are you sampling?\n\nFixed - investigator chosen treatment levels\nRand - random sampled levels\n\nStatistical purpose? \n\nFixed - hypothesis tests on the mean - \\(H_0: \\tau_1 = \\tau_2 = \\tau_n\\)\nRand - tests on the variance components - \\(H_0: \\sigma^2_{\\tau} = 0\\)\n\nComplex data model?\n\nRand - p&gt;&gt;n (more parameters, p than observations, n)\n(e.g. genome-wide prediction)\n\n\n\nData contain hierarchically related and non-independent terms \n\nGenotypes are related\nPlots within Trials within Years within Sites\nCorrelated residuals\n\nUneven replications / unbalanced data",
+    "crumbs": [
+      "Module 1",
+      "Intro to Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/3_MixedModels.html#propose-a-mixed-model",
+    "href": "lessons/3_MixedModels.html#propose-a-mixed-model",
+    "title": "Intro to Mixed Models",
+    "section": "Propose a mixed-model",
+    "text": "Propose a mixed-model\n\\[y_{ij} = Y_i + \\underline{\\textbf{R(Y)_{ij}}} + \\underline{\\textbf{G_k}} + \\underline{\\textbf{GY_{ik}}} + e_{ijk}\\]\n\n\\(\\mu\\) grand mean, intercept\n\\(Y_i\\) effect of year i\n\\(R(Y)_{ij} \\sim N(0,I\\sigma^2_r)\\) random-effect for blocks k nested within years i.\n\\(G_k \\sim N(0,I\\sigma^2_g)\\) effect of genotype (i.e. entry, aka variety of crimson clover)\n\\(GY_{ik} \\sim N(0,I\\sigma^2_{g \\times y})\\) interaction effect, genotype-by-year\n\\(e_{ijk}\\) random error, distributed as \\(e_{ijk} \\sim N(0,I\\sigma^2_e)\\)\n\nNOTE that:\n\nRandom terms have an distribution with an associated mean and variance component\nInteractions even between fixed and random are random\n\nWe will call upon the lme4 package to fit our first mixed-models.\nlme4’s flagship function lmer() can fit mixed-models where the variance parameters are I.I.D. (independent and identically distributed).\nIn the next lesson, we’ll learn asreml and/or sommer, which can handle more complex structures of the V matrix.\n\nlibrary(lme4)\n\nWarning: package 'lme4' was built under R version 4.5.2\n\n\nLoading required package: Matrix\n\n\n\nAttaching package: 'Matrix'\n\n\nThe following objects are masked from 'package:tidyr':\n\n    expand, pack, unpack\n\nmm&lt;-lmer(biomass.1 ~site.year + (1|rep) + (1|entry) + (1|entry:site.year),\n         data = al_alt)\nsummary(mm)\n\nLinear mixed model fit by REML ['lmerMod']\nFormula: \nbiomass.1 ~ site.year + (1 | rep) + (1 | entry) + (1 | entry:site.year)\n   Data: al_alt\n\nREML criterion at convergence: 939.3\n\nScaled residuals: \n     Min       1Q   Median       3Q      Max \n-2.18776 -0.60236  0.00158  0.57017  2.76647 \n\nRandom effects:\n Groups          Name        Variance Std.Dev.\n entry:site.year (Intercept)  58.935   7.677  \n entry           (Intercept)  17.335   4.163  \n rep             (Intercept)   5.807   2.410  \n Residual                    142.962  11.957  \nNumber of obs: 116, groups:  entry:site.year, 58; entry, 35; rep, 4\n\nFixed effects:\n              Estimate Std. Error t value\n(Intercept)     50.027      2.858  17.506\nsite.year25AL  -11.592      3.878  -2.989\n\nCorrelation of Fixed Effects:\n            (Intr)\nsite.yr25AL -0.694\n\n\n\nplot(mm)\n\n\n\n\n\n\n\n\n\nhist(residuals(mm))\n\n\n\n\n\n\n\n\nI’d argue this looks a bit heteroskedastic. Might consider log-transform. Might not.\n\n# log_mm&lt;-lmer(logBiomass ~site.year + (1|rep) + (1|entry) + (1|entry:site.year),\n#          data = al_alt %&gt;% mutate(logBiomass=log(biomass.1)))\n# summary(log_mm)\n# plot(mm)\n# hist(residuals(mm))",
+    "crumbs": [
+      "Module 1",
+      "Intro to Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/3_MixedModels.html#hypothesis-testing",
+    "href": "lessons/3_MixedModels.html#hypothesis-testing",
+    "title": "Intro to Mixed Models",
+    "section": "Hypothesis testing",
+    "text": "Hypothesis testing\n\nThis may not have come up in lecture.\nWe may want to test whether our variance estimates are different from zero, beyond a reasonable doubt. \\(H_0: \\sigma^2_g=0\\)\nFixed-effects models use\n\nF-tests (which are ratios of sums-of-squares) to determine the “significance” of the sources of variation.\nt-tests are also used to compare coefficient estimates to zero.\n\nThe best way to do this for a mixed-model is a likelihood ratio test (LRT).\n\nLRTs compare focal models against so-called “null” models in which one or more variance component have been removed.\nAnother way to say this is that LRTs compare nested models.\nONLY nest-models. You cannot compare different datasets!\nThe ratio of likelihoods of the two models is compared to a \\(\\chi^2\\)-distribution.\nNOTE: Models differing in fixed-effects should be compared with maximum likelihood (not REML); i.e. REML=FALSE in lmer().\n\n\\[\nLRT = -2 \\times ln\n\\left(\\dfrac{L(reduced)}{L(full)}\\right)\n\\]\nIf removing a particular variance component improves or does not change the fit of the model, that component is not of interest.\n\nmm_nullentry&lt;-lmer(biomass.1 ~site.year + (1|rep) + (1|entry:site.year),\n                   data = al_alt)\nanova(mm,mm_nullentry)\n\nrefitting model(s) with ML (instead of REML)\n\n\nData: al_alt\nModels:\nmm_nullentry: biomass.1 ~ site.year + (1 | rep) + (1 | entry:site.year)\nmm: biomass.1 ~ site.year + (1 | rep) + (1 | entry) + (1 | entry:site.year)\n             npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(&gt;Chisq)\nmm_nullentry    5 957.01 970.78 -473.50    947.01                     \nmm              6 958.75 975.27 -473.37    946.75 0.2648  1     0.6069\n\n\n\nlibrary(lmerTest)\n\nWarning: package 'lmerTest' was built under R version 4.5.2\n\n\n\nAttaching package: 'lmerTest'\n\n\nThe following object is masked from 'package:lme4':\n\n    lmer\n\n\nThe following object is masked from 'package:stats':\n\n    step\n\nrand(mm)\n\nANOVA-like table for random-effects: Single term deletions\n\nModel:\nbiomass.1 ~ site.year + (1 | rep) + (1 | entry) + (1 | entry:site.year)\n                      npar  logLik    AIC     LRT Df Pr(&gt;Chisq)  \n&lt;none&gt;                   6 -469.64 951.28                        \n(1 | rep)                5 -470.00 950.00 0.71145  1    0.39896  \n(1 | entry)              5 -469.77 949.54 0.25599  1    0.61289  \n(1 | entry:site.year)    5 -471.14 952.29 3.00386  1    0.08307 .\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1",
+    "crumbs": [
+      "Module 1",
+      "Intro to Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/3_MixedModels.html#blup-vs.-blue",
+    "href": "lessons/3_MixedModels.html#blup-vs.-blue",
+    "title": "Intro to Mixed Models",
+    "section": "BLUP vs. BLUE",
+    "text": "BLUP vs. BLUE\n\nblups&lt;-ranef(mm)\nblups&lt;-blups$entry %&gt;% \n  rename(BLUP=`(Intercept)`) %&gt;% \n  rownames_to_column(var = \"entry\")\nblups_vs_means&lt;-adj_means %&gt;% left_join(blups)\n\nJoining with `by = join_by(entry)`\n\n\n\nblups_vs_means %&gt;% \n  ggplot(.,aes(x=mean,y=BLUP)) + geom_point() + \n  geom_hline(yintercept = 0,color='darkred') + \n  geom_abline(slope=1,color='darkred')\n\n\n\n\n\n\n\n\n\n# al_alt %&gt;% \n#   select(entry,biomass.1) %&gt;% \n#   left_join(blups) %&gt;% \n#   ggplot(.,aes(x=BLUP,y=biomass.1)) + geom_point() + \n#   labs(y=\"Raw Biomass Observations\",x=\"BLUPs\")",
+    "crumbs": [
+      "Module 1",
+      "Intro to Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html",
+    "href": "lessons/4_MoreMixedModels.html",
+    "title": "Genetic Analysis with Mixed Models",
+    "section": "",
+    "text": "Previously: Intro to Mixed Models"
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#summarize-the-data",
+    "href": "lessons/4_MoreMixedModels.html#summarize-the-data",
+    "title": "Genetic Analysis with Mixed Models",
+    "section": "Summarize the data",
+    "text": "Summarize the data\n\nFind a balanced chunk of the data.\nBalance is going to mean a lack of missing data for most or all traits.\nI suggest taking out 2-4 site.years worth.\n\n\nalt %&gt;% \n  filter(site==\"AL\") %&gt;% \n  group_by(site.year) %&gt;% \n  summarize(PropMissingBiomass=length(which(is.na(biomass.1)))/n(),\n            Nentries=length(unique(entry)),\n            Nobs=n())\n\n\nalt$biomass.1 %&gt;% is.na\nalt$biomass.1 %&gt;% is.na %&gt;% which\nlength(which(is.na(alt$biomass.1)))/nrow(alt)\n\n\nal_alt&lt;-alt %&gt;% \n  filter(site==\"AL\")\n\n\nalt %&gt;% \n  filter(site.year=\"25AL\",\n         entry %in% c(\"Dixie\"))"
   }
 ]

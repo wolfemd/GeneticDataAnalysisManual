@@ -19,7 +19,7 @@ website:
         contents:
           - lessons/1_Quarto.qmd
           - lessons/2_LinearModels.qmd
-
+          - lessons/3_MixedModels.qmd
 format:
   html:
     theme: cosmo

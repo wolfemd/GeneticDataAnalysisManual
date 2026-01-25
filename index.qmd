@@ -26,3 +26,4 @@ Department of Crop, Soil & Environmental Sciences, Auburn University
 
 -   [Lesson 1 - Reproducible data projects](lessons/1_Quarto.html)
 -   [Lesson 2 - Linear Models with Matrices](lessons/2_LinearModels.html)
+-   [Lesson 3 - Genetic Analysis with Mixed Models](lessons/3_MixedModels.html)

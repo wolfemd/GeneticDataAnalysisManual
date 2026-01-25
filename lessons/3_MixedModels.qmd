@@ -1,0 +1,410 @@
+---
+title: "Intro to Mixed Models"
+author: "Marnin Wolfe"
+format: html
+execute:
+  error: true
+---
+
+**Previously**: [Reproducible Projects in R](2_LinearModels.qmd)
+
+# Lesson plan
+
+Our goal now is to 
+
+1. Demonstrate the difference between fixed and mixed-effects models. 
+2. Learn simple mixed-modelling in R using `lmer()`
+3. Hypothesis testing of variance components
+
+```{r, message=F, warning=F}
+library(tidyverse)
+```
+
+# Load data and Subset
+
+Use the same data chunk you chose in the previous lesson.
+
+```{r}
+alt<-read.csv(here::here("data","19-25CC_ALT_DATA_ALL_2025-08-23.csv"))
+
+al_alt<-alt %>% 
+  filter(site=="AL")
+```
+
+# Exploratory plots
+
+Let's make a few plots. To help build our model.
+
+```{r}
+al_alt %>% mutate(year=as.character(year)) %>% 
+  ggplot(.,aes(x=year,y=biomass.1, fill=year)) + geom_boxplot() +
+  labs(title="Rep variance")
+```
+
+```{r}
+al_alt %>% 
+  mutate(rep=paste0(site.year,"-",rep)) %>% 
+  ggplot(.,aes(x=site.year,y=biomass.1,fill=rep)) + geom_boxplot() +
+  labs(title="Rep variance")
+```
+
+```{r}
+# Create a vector with the names of entries ordered by their descending
+## mean biomass
+order_entries_by_meanbiomass<-al_alt %>% 
+  group_by(entry) %>% 
+  summarize(meanBiomass=mean(biomass.1)) %>% 
+  arrange(desc(meanBiomass)) %>%
+  .$entry
+
+al_alt %>% 
+  ## Order the factor levels of entry according to biomass-order 
+  mutate(entry=factor(entry,levels=order_entries_by_meanbiomass)) %>% 
+  ggplot(.,aes(x=entry,y=biomass.1,fill=entry)) + 
+  geom_boxplot() + 
+  theme(legend.position = 'none', 
+        axis.text.x = element_text(angle=90)) + 
+  labs(title="Distirbution of performance by Entry")
+```
+
+# Propose a model
+
+$$y_{ij} = Y_i + R(Y)_{ij} + G_k + GY_{ik} + e_{ijk}$$
+
+-   $\mu$ grand mean, intercept
+-   $Y_i$ effect of year *i*
+-   $R(Y)_{ij}$ complete block, or rep effect *k*, nested within year *i*
+-   $G_k$ effect of genotype (i.e. entry, aka variety of crimson clover)
+-   $GY_{ik}$ interaction effect, genotype-by-year
+-   $e_{ijk}$ random error, distributed as $e_{ijk} \sim N(0,I\sigma^2_e)$
+
+# Fixed-effects
+
+We need to format the data to model properly
+
+```{r}
+al_alt<-al_alt %>% 
+  mutate(entry=as.factor(entry),
+         site.year=as.factor(site.year),
+         # explicitly nest values of rep in site.year
+         # review explicit vs. implicit nesting
+         rep=as.factor(paste0(site.year,"-",rep)))
+```
+
+```{r}
+# Fitting the model
+m0 = lm(biomass.1 ~site.year + rep + entry + entry:site.year, 
+        data=al_alt)
+anova(m0) # fit the model
+```
+
+```{r}
+# Check model assumptions
+plot(m0, which = c(1,2))
+hist(residuals(m0))
+```
+
+Let's make a quick comparison of taking raw group-means to using the estimated marginal means ("lsmeans").
+
+```{r}
+entry_means<-al_alt %>% 
+  group_by(entry) %>% 
+  summarize(mean=mean(biomass.1))
+head(entry_means)
+```
+
+Try to extract the estimated marginal means (aka the least-square means) from the fixed-model.
+```{r}
+
+library(emmeans)
+
+emmean<-emmeans(m0,"entry") %>% summary
+
+adj_means<-entry_means %>% 
+  left_join(emmean %>% select(entry,emmean))
+
+```
+
+In the example I chose above, not all levels (entries) of the `emmean` were estimable.
+
+Why not!?
+
+Below, I make some summaries. Look at the counts of number of observations per entry below.
+
+```{r}
+adj_means %>% 
+  # Count number obs per entry
+  left_join(al_alt %>% count(entry,name = "Nobs")) %>% 
+  # Count number of years per entry
+  left_join(al_alt %>% distinct(entry,year) %>% count(entry, name = "Nyears"))
+
+```
+
+The not-estimated lines were only observed in one year (2 plots instead of 4).
+
+Rather than cherry pick a different data chunk, it highlights already the advantage of a mixed-model.
+
+```{r}
+adj_means %>% 
+  ggplot(.,aes(x=mean,y=emmean)) + geom_point() + geom_abline(slope=1,color='darkred')
+```
+
+So far, you can see no difference between a raw mean and the est. marg. means (fixed-effects estimate).
+
+That with the caveat that not all fixed-effects levels were estimable b/c of the data structure.
+
+# Mixed-models
+
+Now let's introduce mixed-models, which include both fixed and random effects.
+
+## Fixed vs. Random
+
+Recall that:
+
+-   **Fixed-effects:** A fixed effect is a parameter that does not vary.
+-   **Random-effects:** An effect whose value depends on “random” events
+
+**What is your objective?**
+
+-   Fixed - compare specific levels of factor
+
+-   Rand - conclusions drawn from larger universe of interest
+
+**What units are you sampling?**
+
+-   Fixed - investigator chosen treatment levels
+
+-   Rand - random sampled levels
+
+**Statistical purpose**? 
+
+-   Fixed - hypothesis tests on the mean - $H_0: \tau_1 = \tau_2 = \tau_n$
+
+-   Rand - tests on the variance components - $H_0: \sigma^2_{\tau} = 0$
+
+**Complex data model?**
+
+-   Rand - p\>\>n (more parameters, p than observations, n)\
+    (e.g. genome-wide prediction)
+
+<!-- -->
+
+-   Data contain hierarchically related and non-independent terms 
+
+    -   Genotypes are related
+
+    -   Plots within Trials within Years within Sites
+
+    -   Correlated residuals
+
+-   Uneven replications / unbalanced data
+
+## Propose a mixed-model
+
+$$y_{ij} = Y_i + \textbf{R(Y)_{ij}} + \textbf{G_k} + \textbf{GY_{ik}} + e_{ijk}$$
+
+-   $\mu$ grand mean, intercept
+-   $Y_i$ effect of year *i*
+-   $R(Y)_{ij} \sim N(0,I\sigma^2_r)$ random-effect for blocks *k* nested within years *i*.
+-   $G_k \sim N(0,I\sigma^2_g)$ effect of genotype (i.e. entry, aka variety of crimson clover)
+-   $GY_{ik} \sim N(0,I\sigma^2_{g \times y})$ interaction effect, genotype-by-year
+-   $e_{ijk}$ random error, distributed as $e_{ijk} \sim N(0,I\sigma^2_e)$
+
+NOTE that:
+
+1.  Random terms have an distribution with an associated mean and variance component
+2.  Interactions even between fixed and random are random
+
+We will call upon the `lme4` package to fit our first mixed-models.
+
+`lme4`'s flagship function `lmer()` can fit mixed-models where the variance parameters are I.I.D. (independent and identically distributed).
+
+In the next lesson, we'll learn `asreml` and/or `sommer`, which can handle more complex structures of the **V** matrix.
+
+```{r, message=F, warning=F}
+library(lme4)
+```
+
+
+```{r}
+mm<-lmer(biomass.1 ~site.year + (1|rep) + (1|entry) + (1|entry:site.year),
+         data = al_alt)
+summary(mm)
+```
+
+```{r}
+plot(mm)
+```
+
+```{r}
+hist(residuals(mm))
+```
+
+I'd argue this looks a bit heteroskedastic. Might consider log-transform. Might not.
+
+```{r}
+# log_mm<-lmer(logBiomass ~site.year + (1|rep) + (1|entry) + (1|entry:site.year),
+#          data = al_alt %>% mutate(logBiomass=log(biomass.1)))
+# summary(log_mm)
+# plot(mm)
+# hist(residuals(mm))
+```
+
+## Hypothesis testing
+
+-   This may not have come up in lecture.
+
+-   We may want to test whether our variance estimates are different from zero, beyond a reasonable doubt. $H_0: \sigma^2_g=0$
+
+-   Fixed-effects models use
+
+    -   F-tests (which are ratios of sums-of-squares) to determine the "significance" of the sources of variation.
+    -   t-tests are also used to compare coefficient estimates to zero.
+
+-   The best way to do this for a mixed-model is a ***likelihood ratio test*** **(LRT)**.
+
+    -   LRTs compare focal models against so-called "null" models in which one or more variance component have been removed.
+    -   Another way to say this is that LRTs compare nested models.
+    -   ONLY nest-models. You cannot compare different datasets!
+    -   The ratio of likelihoods of the two models is compared to a $\chi^2$-distribution.
+    -   NOTE: Models differing in fixed-effects should be compared with *maximum likelihood* (not REML); i.e. `REML=FALSE` in `lmer()`.
+
+    $$
+    LRT = -2 \times ln
+    \left(\dfrac{L(reduced)}{L(full)}\right)
+    $$
+
+-   If removing a particular variance component *improves* or *does not change* the fit of the model, that component is not of interest.
+
+```{r}
+mm_nullentry<-lmer(biomass.1 ~site.year + (1|rep) + (1|entry:site.year),
+                   data = al_alt)
+anova(mm,mm_nullentry)
+```
+
+```{r, message=F, warning=F}
+library(lmerTest)
+rand(mm)
+```
+
+## BLUP vs. BLUE
+
+```{r}
+blups<-ranef(mm)
+blups<-blups$entry %>% 
+  rename(BLUP=`(Intercept)`) %>% 
+  rownames_to_column(var = "entry")
+blups_vs_means<-adj_means %>% left_join(blups)
+
+```
+
+```{r}
+blups_vs_means %>% 
+  ggplot(.,aes(x=mean,y=BLUP)) + geom_point() + 
+  geom_hline(yintercept = 0,color='darkred') + 
+  geom_abline(slope=1,color='darkred')
+```
+
+```{r}
+# al_alt %>% 
+#   select(entry,biomass.1) %>% 
+#   left_join(blups) %>% 
+#   ggplot(.,aes(x=BLUP,y=biomass.1)) + geom_point() + 
+#   labs(y="Raw Biomass Observations",x="BLUPs")
+```
+
+# BLUPs are shrinkage estimates
+
+If your data are completely balanced, the BLUP should be equal to the BLUE (but centered on zero).
+
+If there is missing data, or heterogeneity in the number of observations, BLUPs will shrink values towards the mean. 
+Factor levels with fewer observations will be more shrunken then those with many. 
+Intuitively, this is reflecting our confidence about the prediction when there is more data. 
+
+$$BLUP_k = BLUE_k \times \frac{1}{1+\lambda}$$
+
+Where, $\lambda = \frac{\sigma^2_e}{\sigma^2_u}$. 
+
+Can also be written as:
+
+$$BLUP_k = (\hat{\mu}_k - \hat{\mu})
+  \times \left(\dfrac{\hat{\sigma}^2_g}{\hat{\sigma}^2_g +
+  \frac{\hat{\sigma}^2_e}{r_k}} \right)$$
+
+Notice that $\lambda$ shrinks towards zero when $\sigma^2_u$ is large and $\sigma^2_e$ becomes small. 
+When $\lambda$ is $\approx 0$ then $BLUP_k \approx BLUE_k$.  
+
+To demonstrate, I make some plots below to compare raw data, entry means and BLUPs. 
+
+```{r}
+blups_vs_means %>% 
+  mutate(BLUP=BLUP+mean(al_alt$biomass.1)) %>% 
+  select(-emmean) %>% 
+  pivot_longer(c(mean,BLUP),
+               names_to="Estimate",
+               values_to="Values") %>% 
+  mutate(Estimate=factor(Estimate,levels=c("mean","BLUP"))) %>% 
+  ggplot(.,aes(x=Estimate,y=Values,color=entry,group = entry)) + 
+  geom_point() + geom_line() + 
+  geom_hline(yintercept = mean(al_alt$biomass.1))
+```
+
+Notice that there are crossovers. Rankings by raw means or BLUEs won't be identical to the BLUPs.
+
+Why? Heterogeneous observations. Lines with fewer obs should be more shrunken.
+
+```{r}
+blups_vs_means %>% 
+  mutate(BLUP=BLUP+mean(al_alt$biomass.1)) %>% 
+  select(-emmean) %>% 
+  pivot_longer(c(mean,BLUP),
+               names_to="Estimate",
+               values_to="Values") %>% 
+  mutate(Estimate=factor(Estimate,levels=c("RawData","mean","BLUP"))) %>% 
+  bind_rows(al_alt %>% select(entry,biomass.1) %>% rename(Values=biomass.1) %>% mutate(Estimate="RawData")) %>% 
+  ggplot(.,aes(x=Values,fill=Estimate)) + 
+  geom_density(alpha=0.7)
+```
+
+# Key points
+
+Several connections to our downstream purposes:
+
+1. Mixed-model analysis will enable us the flexiblity to accommodate real data structure
+2. Mixed-model variance component estimates are used in genetic analysis to compute the genetic and environmental components. The ratio of genetic to total variance (or **heritability**, $h^2$ is a critical one in quantitative genetics). 
+3. BLUEs or BLUPs are often sometimes as the response variable (the genetic component) of the phenotype in downstream GWAS/GP. 
+4. For plant breeding, BLUP accounts for the risk of promoting a seemingly exceptional line based on too little data.
+
+
+# Hands-on
+
+1.  Balanced data:
+    -   Find a truly balanced example (no missing, all genotypes observed for all reps)
+    -   Fit a fixed-effects model –\> get `emmeans` for **entry**
+        -   Use ANOVA to test the sources of variation
+    -   Fit a mixed-model –\> get the BLUPs for **entry**
+        -   Use a LRT to test the variance components
+    -   Compare the `emmeans` (basically the BLUEs) to the BLUPs
+2.  Unbalanced data:
+    -   Two options:
+        -   1\) induce missing data in your balanced data chunk
+        -   2\) choose another dataset that leads to heterogeneous observations across **entries** and/or other factors
+    -   Postulate a model that is appropriate
+    -   Fit the fixed-effects model, get `emmeans` and do ANOVA
+    -   Fit the mixed-model, extract the BLUPs and do LRTs on var. comps
+    -   Compare the raw data distribution to the BLUP distribution
+    -   Compare the `emmeans` to the BLUPs
+    -   Observe differential shrinkage across the **entries** by plotting the raw means or BLUEs against the BLUP values.
+
+# Next
+
+That's it for today.
+
+In the next session we will get into more complex variance-covariance structures using primarily `asreml()`. 
+
+Other topics will include:
+1. Model comparison with AIC/BIC
+2. Data wrangling and exploratory data anlaysis
+3. Loops, Functions --> e.g. for analyzing multiple traits
+
+We'll return with [Hands-on Lesson 4 - More on Mixed Models](4_MoreMixedModels.qmd). 
