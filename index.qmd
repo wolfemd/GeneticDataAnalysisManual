@@ -24,6 +24,7 @@ Department of Crop, Soil & Environmental Sciences, Auburn University
 
 ### Lessons
 
--   [Lesson 1 - Reproducible data projects](lessons/1_Quarto.html)
--   [Lesson 2 - Linear Models with Matrices](lessons/2_LinearModels.html)
--   [Lesson 3 - Genetic Analysis with Mixed Models](lessons/3_MixedModels.html)
+-   [Lesson 1 - Reproducible data projects](lessons/1_Quarto.html) - `quarto` / Markdown
+-   [Lesson 2 - Linear Models with Matrices](lessons/2_LinearModels.html) - `lm`
+-   [Lesson 3 - Intro to Mixed Models](lessons/3_MixedModels.html) - `lmer`
+-   [Lesson 4 - More Complex Mixed Models](lessons/4_MoreMixedModels.html) - `asreml`

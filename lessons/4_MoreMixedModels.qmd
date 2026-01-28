@@ -1,0 +1,566 @@
+---
+title: "More Complex Mixed Models"
+author: "Marnin Wolfe"
+format: html
+execute:
+  error: true
+bibliography: references.bib
+---
+
+**Previously**: [Intro to Mixed Models](3_MixedModels.qmd)
+
+# Lesson plan
+
+1.  [**Genetic Analysis with Mixed Models**]{.underline}**:** introducing `asreml` package for more complex **G** and **R** structures compared with `lmer`. We'll have a quick, non-comprehensive primer on asreml, followed by an example and a hands-on exercise.
+
+# ASReml Primer
+
+## Install asreml-R
+
+First thing, you'll need to install the asreml-R package. Please follow this written and video guide to download and install ASReml for R.
+
+https://asreml.kb.vsni.co.uk/knowledge-base/asreml-r-installation-guide/
+
+It's not as simple as `install.packages()`. You'll need the **Activation Code** I provided by email/Canvas. Note this is is a shared AU license including Horticulture, Forestry and CSES.
+
+## Introduction
+
+[Previously](3_MixedModels.qmd), we introduced mixed-models and compared them to linear models.
+
+In lecture, we dug into the mechanics (matrix equations, variance-covariance structures).
+
+There are lot's of software options for mixed-models. They vary in their accessibility, ease-of-use, functionality and computational efficiency. It's beyond our scope here, but an Ch. 6 of @genomic2022 gives a thorough overview as of 2022.
+
+Here's a great [Introduction to ASReml-R](https://emitanaka.org/workshopUTokyo2018/day3-session01-intro-to-asreml.html) (Tanaka 2018).
+
+I highly recommend you reference the [ASReml-R Reference Manual V4.2](https://asreml.kb.vsni.co.uk/wp-content/uploads/sites/3/ASReml-R-Reference-Manual-4.2.pdf); it includes both code specifications AND theory. In my experience, to be successful, you'll need to use it.
+
+BE SURE YOU'RE ON V4.2 (V3 had very different syntax).
+
+[![From Tanaka 2018 Slides](images/clipboard-950642024.png)](https://emitanaka.org/workshopUTokyo2018/day3-session01-intro-to-asreml.html#2)
+
+![Estimates of fixed effects and prediction of random effects (Tanaka 2018)](images/clipboard-4202804236.png)
+
+The `lmer()` function we learned previously only handles the case when $G$ and $R$ matrices are $I$. In other words when errors and random-effects are independent and identically distributed (IID). We'll use `asreml` to access a richer universe of options.
+
+![The R user interface for ASReml (Tanaka 2018)](images/clipboard-3283893993.png)
+
+## Basics
+
+**This section gives a quick primer on core `asreml` functionality. Examples with real data follow.**
+
+-   ASReml is a license-based propriety software.
+-   It uses average information (AI)-REML to solve models.
+-   The core software is based on FORTRAN and comes as a standalone program.
+-   ASReml-R is an R-package that provides an *interface* to ASReml.
+    -   It is computationally pretty efficient thanks to using FORTRAN libraries under-the-hood rather than doing EVERYTHING in R.
+    -   One downside with using R: all datasets and matrices have to be held in your computers RAM. The smaller the RAM, the smaller the data you can handle.
+
+```{r, eval=F}
+asreml(respone ~fixed_formula,
+       random = ~random_formula,
+       residual = ~rcov_formula)
+```
+
+## Variance Structures
+
+For a complete list and specifications: Appendix C of the ASReml-R 4.2 Manual
+
+### Homogeneous Variances
+
+```{r, eval=F}
+# Example
+fit1 <- asreml(Yield ~ Site,
+         random= ~ Site:Geno,
+         data=data1)
+```
+
+By default, asreml will assume random and residual terms are IID.
+
+In the asreml manual, they call this the "homogeneous variance structure".
+
+Equivalently, you can write:
+
+```{r, eval=F}
+fit1a <- asreml(Yield ~ Site, data=data1
+                random= ~ idv(Site):idv(Geno))
+```
+
+This stands for "identity variance" structure = $var(u_{site})=\textbf{I}\sigma^2_{Site}$.
+
+Same goes for the residual term. Here's another equivalence:
+
+```{r, eval=F}
+fit1c <- asreml(Yield ~ Site, data=data1,
+                random= ~ Site:Geno,
+                residual= ~ idv(units))
+```
+
+NOTE: units is a special reserve word in asreml equivalent to `factor(1:nrow(data1))`. It only shows-up in residual terms.
+
+### Heterogeneous Variances
+
+For various reasons, we might want to estimate a separate error-variance for each of several trials.
+
+Or we might want to jointly analyze trials containing semi-overlapping populations / different numbers of genotypes. In such situations, you could postulate a *different* genetic variance for each site.
+
+For this, we want "heterogeneous variance" structures.
+
+In `asreml` there are a few ways to do this:
+
+You can use `idh(Site):Geno` or `diag(Site):Geno`.
+
+These fit separate variances for each level of the factor indicated within the `()`.
+
+### Conditional factors with `at()`
+
+The `at(f,l)` specifics a structure that conditions level **l** and factor **f**. It means, we can choose to estimate a variance term only at certain levels of an effect. For example, if a one trial is replicated and another is not, you might want to do a joint analysis of both trials, including the replication term only for the replicated trial. E.g. `at(Site,"PBU"):rep`.
+
+`at()` can be used in the **G** structure too. When the `l` (factor level) is not specified, e.g. `at(Site)`, instead of `at(Site,"PBU")` the result is equivalent to `diag()` or `idh()`, a separate variance is estimated for each `Site`.
+
+See [ASReml-R manual 3.7](https://asreml.kb.vsni.co.uk/wp-content/uploads/sites/3/ASReml-R-Reference-Manual-4.2.pdf#page=39.34).
+
+## Separable structures
+
+*Separability* means that a covariance structure can be broekn down into the product of smaller matrices (non-technical definition, see [ASReml-R manual 2.1.9](https://asreml.kb.vsni.co.uk/wp-content/uploads/sites/3/ASReml-R-Reference-Manual-4.2.pdf#page=51.21)).
+
+$$
+\Sigma_{u_{AB}} = var(u_{AB}) = \Sigma_A \otimes \Sigma_B 
+$$
+
+$\otimes$ is called a "Kronecker" product in matrix algebra.
+
+![Illustration of a Kronecker Product from 10.48550/arXiv.2305.03875](images/clipboard-961296704.png)
+
+![](images/clipboard-322586631.png){width="319"}
+
+![](images/clipboard-2531281376.png){width="292"}
+
+It means that one variance structure can be "crossed" or "interacted" with another.
+
+Here's an example:
+
+```{r, eval=F}
+fit2 <- asreml(Yield ~ Site, 
+              random=~ us(Site):id(Geno),
+              data=data1)
+```
+
+The `us(Site)` stands for "unstructured" covariance. It means a difference variance *and* a different covariance are estimated for every level.
+
+This one is useful for multi-trait models, among other things. WARNING: Convergence failures and matrix-inversion failures common as `us()` estimates all pairwise variance components. More terms to estimate = fewer degrees of freedom = higher amount of data needed.
+
+![](images/clipboard-3118125856.png){width="356"}
+
+becomes
+
+![](images/clipboard-3267304588.png){width="550"}
+
+## Residual structures
+
+In a multi-environment and multi-year trial, it is realistic to expect different amounts of experimental error across trials.
+
+![](images/clipboard-2652728472.png){width="320"}
+
+This situation can be handled using `dsum()`, which allows for **Conditional Factors** in the residual. Note that, in some cases, `at()` can be used equivalently in the residual.
+
+`dsum()` "a direct sum of **l** variance matrices, one for each level of the conditioning factor... The data observations are partitioned into... sections to which separate variance structures are applied." (see [ASReml-R manual 3.7](https://asreml.kb.vsni.co.uk/wp-content/uploads/sites/3/ASReml-R-Reference-Manual-4.2.pdf#page=39.34))
+
+```{r, eval=F}
+# generic
+residual = ~dsum(~units | section)
+# example
+fit3 <- asreml(Yield ~ Site, 
+              random=~ us(Site):id(Geno),
+              residual = ~dsum(~units|Site),
+              data=data1)
+```
+
+`dsum()` can also specify *different* structures on the residuals *within* different sections (e.g. different Sites.
+
+**RULES for Residual Term:**
+
+1.  Number of effects in `residual` must be equal to number of observations.
+2.  Compound terms in `residual` need to ensure each combo of levels uniquely identifies one unit of data.
+3.  The data must be ordered to match the `residual`. E.g. sort observations *within* Sites for `~dsum(units | Site)`.
+
+## asreml Output
+
+Basic `asreml` output:
+
+```{r, eval=F}
+# Variance Parameters
+summary(fit1)$varcomp # or use lucid::vc(fit1)
+
+##  BLUPs / Prediction
+
+# E-BLUE
+coef(fit1)$fixed
+
+# E-BLUP
+coef(fit1)$random
+```
+
+## LRTs and model comparison
+
+Recall the **likelihood ratio test** discussed previously:
+
+$$
+LRT = -2 \times ln
+\left(\dfrac{L(reduced)}{L(full)}\right)
+$$
+
+This ratio is compared to a $\chi^2$-distribution with degrees of freedom equal to the diff. in number of variance components between the two models.
+
+A small p-value for the test indicates the two models are different.
+
+It DOES NOT necessarily mean your "full" model is the better model. Check the likelihood, or compare the AIC/BIC. If the full model has higher likelihood, then declare the focal variance component "significant".
+
+**Information Criterion**
+
+Akaike Information Criterion (AIC), and the Bayesian Information Criterion (BIC) are related measures of the goodness-of-fit for a model.
+
+$$AIC=-2 \times logL + 2 \times p$$
+
+$$BIC = -2 \times logL + 2 \times p \times log(n)$$ - *p* is the number of varaince parameters in the model - *n* the number of observations
+
+With AIC and BIC, lower-is-better, i.e. the smaller AIC is the better model.
+
+Both of these criteria prioritize models with a high likelihood while penalizing model complexity.
+
+```{r, eval=F}
+# Fixed effects 
+# Wald test
+fit <- asreml(yield ~ Variety*Nitrogen, random= ~ Blocks/Wplots, data=oats)
+
+wald(fit)
+
+# Rand effects
+full_model <- asreml(yield ~ gen, random=~rep, trace=F,
+               data=burgueno.rowcol)
+null_model <- asreml(yield ~ gen, trace=F,
+               data=burgueno.rowcol)
+lrt(fit2, fit1)
+```
+
+## Other
+
+**Convergence issues**
+
+-   Run more iterations:
+    -   increase `maxiter=`
+    -   Use `update(fit)`
+    -   Use initial values (`init`) in the argument of the `asreml` function
+
+**Memory space**
+
+-   Increase the RAM available to ASREML (`workspace="10gb")`
+-   Use `top`, `htop`, Activity/System Monitor –\> watch you system resources
+
+# Example
+
+Let's keep using the data subset we chose for previous lessons.
+
+## Data
+
+```{r, warning=F, message=F}
+library(tidyverse)
+library(asreml)
+library(lme4)
+```
+
+```{r}
+alt<-read.csv(here::here("data","19-25CC_ALT_DATA_ALL_2025-08-23.csv"))
+
+# My example data chunk, same as before
+# Keep using your own!
+al_alt<-alt %>% 
+  filter(site=="AL")
+
+# Make factors before modeling
+al_alt<-al_alt %>% 
+  mutate(entry=as.factor(entry),
+         site.year=as.factor(site.year),
+         # explicitly nest values of rep in site.year
+         # review explicit vs. implicit nesting
+         rep=as.factor(paste0(site.year,"-",rep)))
+```
+
+## lmer vs. asreml
+
+The `lmer` model we fit was:
+
+```{r}
+lmer_mm<-lmer(biomass.1 ~site.year + (1|rep) + (1|entry) + (1|entry:site.year),
+         data = al_alt)
+summary(lmer_mm)
+```
+
+We can fit the equivalent model with asreml like so:
+
+```{r}
+asr_mm<-asreml(biomass.1 ~site.year,
+               random = ~entry + rep + site.year:entry,
+               data = al_alt)
+summary(asr_mm)$varcomp
+# lucid::vc(asr_mm) ## this just makes a prettier looking output
+```
+
+```{r}
+# E-BLUE
+coef(asr_mm)$fixed
+```
+
+```{r}
+# E-BLUP for entry
+coef(asr_mm,list = T)$entry %>% head
+```
+
+This gives us *just the BLUPs*.
+
+```{r}
+# Also E-BLUP
+summary(asr_mm,coef=T)$coef.random %>% head
+```
+
+This gives us also the standard errors, which when squared give us the **Prediction Error Variances** (PEVs).
+
+## Check assumptions
+
+We can plot residuals and check assumptions in much the same was as with `plot.lmer`.
+
+```{r}
+plot(asr_mm)
+```
+
+## Hypothesis testing with asreml
+
+Now let's do a likelihood ratio test.
+
+```{r}
+asr_nullentry<-asreml(biomass.1 ~site.year,
+                      random = ~rep + site.year:entry,
+                      data = al_alt)
+lrt(asr_mm,asr_nullentry)
+```
+
+That's a bummer. The genetic effect in the data chunk does not appear significant.
+
+Test on the fixed effects
+
+```{r}
+wald(asr_mm)
+```
+
+**NOTE:** if you *really* want to do sig. tests on your mixed-model's fixed effects, do some reading first. There are some options we should consider regarding the Wald test. Namely, I believe it does an equivalent of a Type I SS (sequential). I think (am not certain) you can achieve something like a Type III (non-sequential) with something like this `wald(fit, ssType="conditional", denDF="numeric")`. Verify.
+
+## Variance structures
+
+Next, let's fit a more appropriate data to the model, one that `lmer` cannot do.
+
+There are several possibilities: 1. Fit a heterogeneous (different) error variance for each site.year 2. There are a few **entry** in `24AL` that are not in `25AL`, one *could* estimate a different genetic variance for each site.year. 3. Variance among complete blocks could differ between site.years.
+
+For demo purposes, I'll focus on the heterogeneous errors. That's what's most plausible IMHO.
+
+```{r}
+asr_heterror<-asreml(biomass.1 ~site.year,
+                     random = ~entry + rep + site.year:entry,
+                     residual = ~dsum(~units|site.year),
+                     data = al_alt %>% arrange(site.year,X))
+```
+
+```{r}
+# summary(asr_heterror)$varcomp
+lucid::vc(asr_heterror)
+```
+
+Notice that two separate error variance estimates are produced, one for each site.year.
+
+Looks like 25AL had smaller error than 24AL.
+
+Now we have a nested model between the original and the one with added het. errors.
+
+Two ways to compare:
+
+```{r}
+lrt(asr_mm,asr_heterror)
+```
+
+Ok, so the LRT says these two models are different.
+
+```{r}
+plot(asr_heterror)
+```
+
+With complex residual structures, it appears asreml won't auto-plot your residual diagnostics.
+
+Distribution of residuals
+
+```{r}
+hist(residuals(asr_heterror))
+```
+
+Standardized residuals vs. fitted.
+
+```{r}
+plot(x=fitted(asr_heterror),y=scale(residuals(asr_heterror))); abline(b = 0,h = 0)
+```
+
+QQ plot:
+
+```{r}
+res<-residuals(asr_heterror)
+qqnorm(res); qqline(res, col = "red")
+```
+
+## Model comparison
+
+AIC and BIC are computed by asreml and available in the summary object. As long as you've got the same data and fixed-effects, you can use this along with the LRT to determine which model is best fit.
+
+```{r}
+summary(asr_mm)$aic
+```
+
+```{r}
+summary(asr_heterror)$aic
+```
+
+So the heterror model does have a lower AIC value. Along with the LRT p-value, we can declare this a significantly better model.
+
+```{r}
+asr_heterror_nullg<-asreml(biomass.1 ~site.year,
+                           random = ~rep + site.year:entry,
+                           residual = ~dsum(~units|site.year),
+                           data = al_alt %>% arrange(site.year,X), 
+                           maxit=90)
+```
+
+```{r}
+lrt(asr_heterror_nullg,asr_heterror)
+```
+
+Yeah, well, still not showing significant genetic variation. Bummer.
+
+```{r}
+summary(asr_heterror)$aic - summary(asr_heterror_nullg)$aic
+```
+
+The AIC of the full model is *higher* than the null.
+
+What about the GxE term?
+
+```{r}
+asr_heterror_nullgxe<-asreml(biomass.1 ~site.year,
+                           random = ~entry + rep,
+                           residual = ~dsum(~units|site.year),
+                           data = al_alt %>% arrange(site.year,X), 
+                           maxit=90)
+lrt(asr_heterror_nullgxe,asr_heterror)
+summary(asr_heterror)$aic - summary(asr_heterror_nullgxe)$aic
+```
+
+Ok! So the GxSiteYear term is significant and improves model fit.
+
+There's more that can be done here, alternative models that could be tested.
+
+Good enough for our demo.
+
+## PEV and REL
+
+Let's say we are happy with our model.
+
+Now we want to extract BLUPs, and compute the Reliability of Prediction.
+
+The `summary()` function includes the "standard errors" of prediction.
+
+```{r}
+blups<-summary(asr_heterror,coef=T)$coef.random %>% 
+  # confert to data.frame
+  as.data.frame %>% 
+  # change the rownames to a column the the data.frame
+  rownames_to_column(var = "entry") %>% 
+  # filter to only the BLUPs for the entry main-effect 
+  # (output includes all random terms)
+  filter(grepl("^entry_",entry)) %>% 
+  # for good measure, tidy data, 
+  # need to remove a prefix that asreml added to each entry name
+  mutate(entry=gsub("entry_","",entry,fixed = T))
+blups %>% dim
+
+```
+
+```{r}
+blups %>% head
+```
+
+Recall that 
+$$REL_i = 1 - \frac{PEV_i}{\sigma^2_u}$$
+
+```{r}
+Vg<-summary(asr_heterror)$varcomp["entry","component"]
+blups<-blups %>% 
+  mutate(PEV=std.error^2,
+         REL=1-(PEV/Vg))
+
+hist(blups$REL)
+```
+
+Recall that the average reliability of prediction for a main genetic effect is an estimator of the heritability (ratio of genetic to total phenotypic variance) (@cullis2006; @schmidt2019) .
+
+```{r}
+mean(blups$REL)
+```
+
+```{r}
+
+```
+
+## Heritability
+
+We haven't talked much about Quantitative Genetics parameters yet.
+
+The heritability is a critical parameter in genetics. It expresses that fraction of trait variation that is genetic. It is used, among other things, to predict the response of a population to selection. See "Breeder's Equation"; we'll talk about it soon!
+
+Let's compare the Cullis estimate (\~0.19) to the "traditional" variance component based one.
+
+The formula should be something like this:
+
+$$
+H^2 = \frac{\sigma^2_g}{\sigma^2_g + \sigma^2_{g\times yr} + \frac{\bar{\sigma^2_{e_k}}}{nYrs}}
+$$
+
+Note I took the mean error across site.years.
+
+```{r}
+varcomps<-summary(asr_heterror)$varcomp
+VgXsiteyr<-varcomps["site.year:entry","component"]
+Ve_meanPerSite<-mean(varcomps[grepl("site.year_",rownames(varcomps)),"component"])
+
+Vg / (Vg + VgXsiteyr + Ve_meanPerSite)
+```
+
+# Hands-on
+
+Now it's your turn!
+
+-   Our goal is to be able to jointly analyze the entire ALT dataset and to produce estimates of genetic parameters (heritability) *and* rankings of the entries (BLUPs).
+-   OPTIONS:
+    1.  Use your previous data chunk (important it includes multiple site-years)
+    2.  Pick a bigger, more complex chunk
+    3.  For the very bold: try analyzing the *entire* dataset.
+-   Postulate and write the model you will use.
+-   Find the best-fit model for the dataset
+    -   Determine this using Likelihood Ratio Tests and the AIC/BIC
+-   Is there "significant" genetic variability in your data? Which variance components are \>0?
+-   What is the heritability?
+    -   Compute both the classical and the Cullis (mean REL) heritability.
+-   Other things that should be instructive:
+    -   Compare you BLUPs to BLUEs and/or to raw means.
+    -   Explore the relationship between amount-of-data (number of plots, years, etc) and the **REL** of prediction. Why do some entries have lesser or greater reliability?
+-   Which is the "best" Crimson Clover **entry** in the bunch? Does it vary by year? Location? Region?
+
+# Next
+
+[**Advanced Mixed Model Topics**]{.underline}**:** Probable Topics (multi-env. trial analysis, two-stage analysis, GxE, spatial models, heritability)
+
+[**Hands-on Data Wrangling and Exploratory Data Analysis**](5_DataWrangling.qmd){.underline}**:** how to manipulate and plot your data, functions, loops and analyzing multiple traits.
