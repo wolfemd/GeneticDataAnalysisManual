@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Genetic Data Analysis Manual",
     "section": "",
-    "text": "Welcome to Genetic Data Analysis (CSES 7160) at Auburn University.\nThis course covers statistical and computational foundations for analyzing genetic, genomic, and phenotypic data in crop science, with an emphasis on reproducible workflows using R, Quarto, GitHub, and modern mixed-model approaches.\n\nKey Links\n\nSyllabus: See Shared Google Doc (or Canvas page)\nSchedule: See Shared Google Doc (or Canvas page)\nLecture Notes: See Shared Google Doc (or Canvas page)\nCourse GitHub Repo: https://github.com/wolfemd/GeneticDataAnalysisManual\n\n\n\nInstructor\nDr. Marnin D. Wolfe\nAssistant Professor, Quantitative Genetics\nDepartment of Crop, Soil & Environmental Sciences, Auburn University\n\n\nLessons\n\nLesson 1 - Reproducible data projects\nLesson 2 - Linear Models with Matrices\nLesson 3 - Genetic Analysis with Mixed Models",
+    "text": "Welcome to Genetic Data Analysis (CSES 7160) at Auburn University.\nThis course covers statistical and computational foundations for analyzing genetic, genomic, and phenotypic data in crop science, with an emphasis on reproducible workflows using R, Quarto, GitHub, and modern mixed-model approaches.\n\nKey Links\n\nSyllabus: See Shared Google Doc (or Canvas page)\nSchedule: See Shared Google Doc (or Canvas page)\nLecture Notes: See Shared Google Doc (or Canvas page)\nCourse GitHub Repo: https://github.com/wolfemd/GeneticDataAnalysisManual\n\n\n\nInstructor\nDr. Marnin D. Wolfe\nAssistant Professor, Quantitative Genetics\nDepartment of Crop, Soil & Environmental Sciences, Auburn University\n\n\nLessons\n\nLesson 1 - Reproducible data projects - quarto / Markdown\nLesson 2 - Linear Models with Matrices - lm\nLesson 3 - Intro to Mixed Models - lmer\nLesson 4 - More Complex Mixed Models - asreml",
     "crumbs": [
       "Home"
     ]
@@ -334,15 +334,304 @@
   {
     "objectID": "lessons/4_MoreMixedModels.html",
     "href": "lessons/4_MoreMixedModels.html",
-    "title": "Genetic Analysis with Mixed Models",
+    "title": "More Complex Mixed Models",
     "section": "",
-    "text": "Previously: Intro to Mixed Models"
+    "text": "Previously: Intro to Mixed Models",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
   },
   {
     "objectID": "lessons/4_MoreMixedModels.html#summarize-the-data",
     "href": "lessons/4_MoreMixedModels.html#summarize-the-data",
     "title": "Genetic Analysis with Mixed Models",
     "section": "Summarize the data",
-    "text": "Summarize the data\n\nFind a balanced chunk of the data.\nBalance is going to mean a lack of missing data for most or all traits.\nI suggest taking out 2-4 site.years worth.\n\n\nalt %&gt;% \n  filter(site==\"AL\") %&gt;% \n  group_by(site.year) %&gt;% \n  summarize(PropMissingBiomass=length(which(is.na(biomass.1)))/n(),\n            Nentries=length(unique(entry)),\n            Nobs=n())\n\n\nalt$biomass.1 %&gt;% is.na\nalt$biomass.1 %&gt;% is.na %&gt;% which\nlength(which(is.na(alt$biomass.1)))/nrow(alt)\n\n\nal_alt&lt;-alt %&gt;% \n  filter(site==\"AL\")\n\n\nalt %&gt;% \n  filter(site.year=\"25AL\",\n         entry %in% c(\"Dixie\"))"
+    "text": "Summarize the data\n\nFind a balanced chunk of the data.\nBalance is going to mean a lack of missing data for most or all traits.\nI suggest taking out 2-4 site.years worth.\n\n\nalt %&gt;% \n  filter(site==\"AL\") %&gt;% \n  group_by(site.year) %&gt;% \n  summarize(PropMissingBiomass=length(which(is.na(biomass.1)))/n(),\n            Nentries=length(unique(entry)),\n            Nobs=n())\n\n\nalt$biomass.1 %&gt;% is.na\nalt$biomass.1 %&gt;% is.na %&gt;% which\nlength(which(is.na(alt$biomass.1)))/nrow(alt)",
+    "crumbs": [
+      "Module 1",
+      "Genetic Analysis with Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#install-asreml-r",
+    "href": "lessons/4_MoreMixedModels.html#install-asreml-r",
+    "title": "More Complex Mixed Models",
+    "section": "Install asreml-R",
+    "text": "Install asreml-R\nFirst thing, you’ll need to install the asreml-R package. Please follow this written and video guide to download and install ASReml for R.\nhttps://asreml.kb.vsni.co.uk/knowledge-base/asreml-r-installation-guide/\nIt’s not as simple as install.packages(). You’ll need the Activation Code I provided by email/Canvas. Note this is is a shared AU license including Horticulture, Forestry and CSES.",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#introduction",
+    "href": "lessons/4_MoreMixedModels.html#introduction",
+    "title": "More Complex Mixed Models",
+    "section": "Introduction",
+    "text": "Introduction\nPreviously, we introduced mixed-models and compared them to linear models.\nIn lecture, we dug into the mechanics (matrix equations, variance-covariance structures).\nThere are lot’s of software options for mixed-models. They vary in their accessibility, ease-of-use, functionality and computational efficiency. It’s beyond our scope here, but an Ch. 6 of Ahmadi and Bartholomé (2022) gives a thorough overview as of 2022.\nHere’s a great Introduction to ASReml-R (Tanaka 2018).\nI highly recommend you reference the ASReml-R Reference Manual V4.2; it includes both code specifications AND theory. In my experience, to be successful, you’ll need to use it.\nBE SURE YOU’RE ON V4.2 (V3 had very different syntax).\n\n\n\nFrom Tanaka 2018 Slides\n\n\n\n\n\nEstimates of fixed effects and prediction of random effects (Tanaka 2018)\n\n\nThe lmer() function we learned previously only handles the case when \\(G\\) and \\(R\\) matrices are \\(I\\). In other words when errors and random-effects are independent and identically distributed (IID). We’ll use asreml to access a richer universe of options.\n\n\n\nThe R user interface for ASReml (Tanaka 2018)",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#basics",
+    "href": "lessons/4_MoreMixedModels.html#basics",
+    "title": "More Complex Mixed Models",
+    "section": "Basics",
+    "text": "Basics\nThis section gives a quick primer on core asreml functionality. Examples with real data follow.\n\nASReml is a license-based propriety software.\nIt uses average information (AI)-REML to solve models.\nThe core software is based on FORTRAN and comes as a standalone program.\nASReml-R is an R-package that provides an interface to ASReml.\n\nIt is computationally pretty efficient thanks to using FORTRAN libraries under-the-hood rather than doing EVERYTHING in R.\nOne downside with using R: all datasets and matrices have to be held in your computers RAM. The smaller the RAM, the smaller the data you can handle.\n\n\n\nasreml(respone ~fixed_formula,\n       random = ~random_formula,\n       residual = ~rcov_formula)",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#variance-structures",
+    "href": "lessons/4_MoreMixedModels.html#variance-structures",
+    "title": "More Complex Mixed Models",
+    "section": "Variance Structures",
+    "text": "Variance Structures\nFor a complete list and specifications: Appendix C of the ASReml-R 4.2 Manual\n\nHomogeneous Variances\n\n# Example\nfit1 &lt;- asreml(Yield ~ Site,\n         random= ~ Site:Geno,\n         data=data1)\n\nBy default, asreml will assume random and residual terms are IID.\nIn the asreml manual, they call this the “homogeneous variance structure”.\nEquivalently, you can write:\n\nfit1a &lt;- asreml(Yield ~ Site, data=data1\n                random= ~ idv(Site):idv(Geno))\n\nThis stands for “identity variance” structure = \\(var(u_{site})=\\textbf{I}\\sigma^2_{Site}\\).\nSame goes for the residual term. Here’s another equivalence:\n\nfit1c &lt;- asreml(Yield ~ Site, data=data1,\n                random= ~ Site:Geno,\n                residual= ~ idv(units))\n\nNOTE: units is a special reserve word in asreml equivalent to factor(1:nrow(data1)). It only shows-up in residual terms.\n\n\nHeterogeneous Variances\nFor various reasons, we might want to estimate a separate error-variance for each of several trials.\nOr we might want to jointly analyze trials containing semi-overlapping populations / different numbers of genotypes. In such situations, you could postulate a different genetic variance for each site.\nFor this, we want “heterogeneous variance” structures.\nIn asreml there are a few ways to do this:\nYou can use idh(Site):Geno or diag(Site):Geno.\nThese fit separate variances for each level of the factor indicated within the ().\n\n\nConditional factors with at()\nThe at(f,l) specifics a structure that conditions level l and factor f. It means, we can choose to estimate a variance term only at certain levels of an effect. For example, if a one trial is replicated and another is not, you might want to do a joint analysis of both trials, including the replication term only for the replicated trial. E.g. at(Site,\"PBU\"):rep.\nat() can be used in the G structure too. When the l (factor level) is not specified, e.g. at(Site), instead of at(Site,\"PBU\") the result is equivalent to diag() or idh(), a separate variance is estimated for each Site.\nSee ASReml-R manual 3.7.",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#asreml-output",
+    "href": "lessons/4_MoreMixedModels.html#asreml-output",
+    "title": "More Complex Mixed Models",
+    "section": "asreml Output",
+    "text": "asreml Output\nBasic asreml output:\n\n# Variance Parameters\nsummary(fit1)$varcomp # or use lucid::vc(fit1)\n\n##  BLUPs / Prediction\n\n# E-BLUE\ncoef(fit1)$fixed\n\n# E-BLUP\ncoef(fit1)$random",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#lrts-and-model-comparison",
+    "href": "lessons/4_MoreMixedModels.html#lrts-and-model-comparison",
+    "title": "More Complex Mixed Models",
+    "section": "LRTs and model comparison",
+    "text": "LRTs and model comparison\nRecall the likelihood ratio test discussed previously:\n\\[\nLRT = -2 \\times ln\n\\left(\\dfrac{L(reduced)}{L(full)}\\right)\n\\]\nThis ratio is compared to a \\(\\chi^2\\)-distribution with degrees of freedom equal to the diff. in number of variance components between the two models.\nA small p-value for the test indicates the two models are different.\nIt DOES NOT necessarily mean your “full” model is the better model. Check the likelihood, or compare the AIC/BIC. If the full model has higher likelihood, then declare the focal variance component “significant”.\nInformation Criterion\nAkaike Information Criterion (AIC), and the Bayesian Information Criterion (BIC) are related measures of the goodness-of-fit for a model.\n\\[AIC=-2 \\times logL + 2 \\times p\\]\n\\[BIC = -2 \\times logL + 2 \\times p \\times log(n)\\] - p is the number of varaince parameters in the model - n the number of observations\nWith AIC and BIC, lower-is-better, i.e. the smaller AIC is the better model.\nBoth of these criteria prioritize models with a high likelihood while penalizing model complexity.\n\n# Fixed effects \n# Wald test\nfit &lt;- asreml(yield ~ Variety*Nitrogen, random= ~ Blocks/Wplots, data=oats)\n\nwald(fit)\n\n# Rand effects\nfull_model &lt;- asreml(yield ~ gen, random=~rep, trace=F,\n               data=burgueno.rowcol)\nnull_model &lt;- asreml(yield ~ gen, trace=F,\n               data=burgueno.rowcol)\nlrt(fit2, fit1)",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#other",
+    "href": "lessons/4_MoreMixedModels.html#other",
+    "title": "More Complex Mixed Models",
+    "section": "Other",
+    "text": "Other\nConvergence issues\n\nRun more iterations:\n\nincrease maxiter=\nUse update(fit)\nUse initial values (init) in the argument of the asreml function\n\n\nMemory space\n\nIncrease the RAM available to ASREML (workspace=\"10gb\")\nUse top, htop, Activity/System Monitor –&gt; watch you system resources",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#example",
+    "href": "lessons/4_MoreMixedModels.html#example",
+    "title": "Genetic Analysis with Mixed Models",
+    "section": "Example",
+    "text": "Example\n\nData\n\nlibrary(tidyverse)\n\n\nalt&lt;-read.csv(here::here(\"data\",\"19-25CC_ALT_DATA_ALL_2025-08-23.csv\"))\n\n# My example data chunk, same as before\n# Keep using your own!\nal_alt&lt;-alt %&gt;% \n  filter(site==\"AL\")\n\n\n# Variance Parameters\nsummary(fit1)$varcomp # or use lucid::vc(fit1)\n\n\nsummary(asout,coef=T)$coef.random\n# E-BLUE\ncoef(fit1)$fixed\n\n# E-BLUP\ncoef(fit1)$random\n\n\n\nFitting models",
+    "crumbs": [
+      "Module 1",
+      "Genetic Analysis with Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#hands-on",
+    "href": "lessons/4_MoreMixedModels.html#hands-on",
+    "title": "Genetic Analysis with Mixed Models",
+    "section": "Hands-on",
+    "text": "Hands-on\n\nContinue with CCB ALT data\nFind the best-fit model for a data chunk that includes multiple site-years.",
+    "crumbs": [
+      "Module 1",
+      "Genetic Analysis with Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#multi-trial",
+    "href": "lessons/4_MoreMixedModels.html#multi-trial",
+    "title": "Genetic Analysis with Mixed Models",
+    "section": "Multi-trial",
+    "text": "Multi-trial",
+    "crumbs": [
+      "Module 1",
+      "Genetic Analysis with Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#gxe",
+    "href": "lessons/4_MoreMixedModels.html#gxe",
+    "title": "Genetic Analysis with Mixed Models",
+    "section": "GxE",
+    "text": "GxE",
+    "crumbs": [
+      "Module 1",
+      "Genetic Analysis with Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#two-stage",
+    "href": "lessons/4_MoreMixedModels.html#two-stage",
+    "title": "Genetic Analysis with Mixed Models",
+    "section": "Two-stage",
+    "text": "Two-stage",
+    "crumbs": [
+      "Module 1",
+      "Genetic Analysis with Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#separable-structures",
+    "href": "lessons/4_MoreMixedModels.html#separable-structures",
+    "title": "More Complex Mixed Models",
+    "section": "Separable structures",
+    "text": "Separable structures\nSeparability means that a covariance structure can be broekn down into the product of smaller matrices (non-technical definition, see ASReml-R manual 2.1.9).\n\\[\n\\Sigma_{u_{AB}} = var(u_{AB}) = \\Sigma_A \\otimes \\Sigma_B\n\\]\n\\(\\otimes\\) is called a “Kronecker” product in matrix algebra.\n\n\n\nIllustration of a Kronecker Product from 10.48550/arXiv.2305.03875\n\n\n\n\nIt means that one variance structure can be “crossed” or “interacted” with another.\nHere’s an example:\n\nfit2 &lt;- asreml(Yield ~ Site, \n              random=~ us(Site):id(Geno),\n              data=data1)\n\nThe us(Site) stands for “unstructured” covariance. It means a difference variance and a different covariance are estimated for every level.\nThis one is useful for multi-trait models, among other things. WARNING: Convergence failures and matrix-inversion failures common as us() estimates all pairwise variance components. More terms to estimate = fewer degrees of freedom = higher amount of data needed.\n\nbecomes",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#residual-structures",
+    "href": "lessons/4_MoreMixedModels.html#residual-structures",
+    "title": "More Complex Mixed Models",
+    "section": "Residual structures",
+    "text": "Residual structures\nIn a multi-environment and multi-year trial, it is realistic to expect different amounts of experimental error across trials.\n\nThis situation can be handled using dsum(), which allows for Conditional Factors in the residual. Note that, in some cases, at() can be used equivalently in the residual.\ndsum() “a direct sum of l variance matrices, one for each level of the conditioning factor… The data observations are partitioned into… sections to which separate variance structures are applied.” (see ASReml-R manual 3.7)\n\n# generic\nresidual = ~dsum(~units | section)\n# example\nfit3 &lt;- asreml(Yield ~ Site, \n              random=~ us(Site):id(Geno),\n              residual = ~dsum(~units|Site),\n              data=data1)\n\ndsum() can also specify different structures on the residuals within different sections (e.g. different Sites.\nRULES for Residual Term:\n\nNumber of effects in residual must be equal to number of observations.\nCompound terms in residual need to ensure each combo of levels uniquely identifies one unit of data.\nThe data must be ordered to match the residual. E.g. sort observations within Sites for ~dsum(units | Site).",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#data",
+    "href": "lessons/4_MoreMixedModels.html#data",
+    "title": "More Complex Mixed Models",
+    "section": "Data",
+    "text": "Data\n\nlibrary(tidyverse)\nlibrary(asreml)\n\nOnline License checked out Wed Jan 28 11:01:48 2026\n\nlibrary(lme4)\n\n\nalt&lt;-read.csv(here::here(\"data\",\"19-25CC_ALT_DATA_ALL_2025-08-23.csv\"))\n\n# My example data chunk, same as before\n# Keep using your own!\nal_alt&lt;-alt %&gt;% \n  filter(site==\"AL\")\n\n# Make factors before modeling\nal_alt&lt;-al_alt %&gt;% \n  mutate(entry=as.factor(entry),\n         site.year=as.factor(site.year),\n         # explicitly nest values of rep in site.year\n         # review explicit vs. implicit nesting\n         rep=as.factor(paste0(site.year,\"-\",rep)))",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#lmer-vs.-asreml",
+    "href": "lessons/4_MoreMixedModels.html#lmer-vs.-asreml",
+    "title": "More Complex Mixed Models",
+    "section": "lmer vs. asreml",
+    "text": "lmer vs. asreml\nThe lmer model we fit was:\n\nlmer_mm&lt;-lmer(biomass.1 ~site.year + (1|rep) + (1|entry) + (1|entry:site.year),\n         data = al_alt)\nsummary(lmer_mm)\n\nLinear mixed model fit by REML ['lmerMod']\nFormula: \nbiomass.1 ~ site.year + (1 | rep) + (1 | entry) + (1 | entry:site.year)\n   Data: al_alt\n\nREML criterion at convergence: 939.3\n\nScaled residuals: \n     Min       1Q   Median       3Q      Max \n-2.18776 -0.60236  0.00158  0.57017  2.76647 \n\nRandom effects:\n Groups          Name        Variance Std.Dev.\n entry:site.year (Intercept)  58.935   7.677  \n entry           (Intercept)  17.335   4.163  \n rep             (Intercept)   5.807   2.410  \n Residual                    142.962  11.957  \nNumber of obs: 116, groups:  entry:site.year, 58; entry, 35; rep, 4\n\nFixed effects:\n              Estimate Std. Error t value\n(Intercept)     50.027      2.858  17.506\nsite.year25AL  -11.592      3.878  -2.989\n\nCorrelation of Fixed Effects:\n            (Intr)\nsite.yr25AL -0.694\n\n\nWe can fit the equivalent model with asreml like so:\n\nasr_mm&lt;-asreml(biomass.1 ~site.year,\n               random = ~entry + rep + site.year:entry,\n               data = al_alt)\n\nASReml Version 4.2 28/01/2026 11:01:49\n          LogLik        Sigma2     DF     wall\n 1     -366.2039      175.6047    114   11:01:49\n 2     -365.4699      164.5684    114   11:01:49\n 3     -364.8944      145.4173    114   11:01:49\n 4     -364.8831      143.0244    114   11:01:49\n 5     -364.8830      142.9635    114   11:01:49\n\nsummary(asr_mm)$varcomp\n\n                 component std.error   z.ratio bound %ch\nrep               5.806474  10.86064 0.5346348     P 0.1\nentry            17.335959  32.80183 0.5285059     P 0.1\nsite.year:entry  58.934355  40.82486 1.4435898     P 0.0\nunits!R         142.963533  27.02516 5.2900159     P 0.0\n\n# lucid::vc(asr_mm) ## this just makes a prettier looking output\n\n\n# E-BLUE\ncoef(asr_mm)$fixed\n\n                  effect\n(Intercept)     50.02667\nsite.year_24AL   0.00000\nsite.year_25AL -11.59152\n\n\n\n# E-BLUP for entry\ncoef(asr_mm,list = T)$entry %&gt;% head\n\n                       effect\nentry_17MDCCH       1.0255866\nentry_17MDCCS       2.5387950\nentry_17RMCCL      -1.8767066\nentry_18NCCCEGiant  1.3787976\nentry_19MDCC        1.8343968\nentry_19NCCCLH     -0.3611015\n\n\nThis gives us just the BLUPs.\n\n# Also E-BLUP\nsummary(asr_mm,coef=T)$coef.random %&gt;% head\n\n                     solution std.error     z.ratio\nentry_17MDCCH       1.0255866  3.718116  0.27583502\nentry_17MDCCS       2.5387950  3.718116  0.68281758\nentry_17RMCCL      -1.8767066  3.922077 -0.47849816\nentry_18NCCCEGiant  1.3787976  3.921467  0.35160252\nentry_19MDCC        1.8343968  3.718116  0.49336729\nentry_19NCCCLH     -0.3611015  3.718116 -0.09711949\n\n\nThis gives us also the standard errors, which when squared give us the Prediction Error Variances (PEVs).",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#check-assumptions",
+    "href": "lessons/4_MoreMixedModels.html#check-assumptions",
+    "title": "More Complex Mixed Models",
+    "section": "Check assumptions",
+    "text": "Check assumptions\nWe can plot residuals and check assumptions in much the same was as with plot.lmer.\n\nplot(asr_mm)\n\nWarning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.\nℹ Please use `linewidth` instead.\nℹ The deprecated feature was likely used in the asreml package.\n  Please report the issue to the authors.",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#hypothesis-testing-with-asreml",
+    "href": "lessons/4_MoreMixedModels.html#hypothesis-testing-with-asreml",
+    "title": "More Complex Mixed Models",
+    "section": "Hypothesis testing with asreml",
+    "text": "Hypothesis testing with asreml\nNow let’s do a likelihood ratio test.\n\nasr_nullentry&lt;-asreml(biomass.1 ~site.year,\n                      random = ~rep + site.year:entry,\n                      data = al_alt)\n\nASReml Version 4.2 28/01/2026 11:01:49\n          LogLik        Sigma2     DF     wall\n 1     -367.3448      192.4790    114   11:01:49\n 2     -366.0755      174.8798    114   11:01:49\n 3     -365.2521      156.9297    114   11:01:49\n 4     -365.0124      143.9875    114   11:01:49\n 5     -365.0110      142.9698    114   11:01:49\n\nlrt(asr_mm,asr_nullentry)\n\nLikelihood ratio test(s) assuming nested random models.\n(See Self & Liang, 1987)\n\n                     df LR-statistic Pr(Chisq)\nasr_mm/asr_nullentry  1      0.25599    0.3064\n\n\nThat’s a bummer. The genetic effect in the data chunk does not appear significant.\nTest on the fixed effects\n\nwald(asr_mm)\n\n\u001b[0;34mWald tests for fixed effects.\u001b[0m\n\u001b[0;34mResponse: biomass.1\u001b[0m\n\u001b[0;34mTerms added sequentially; adjusted for those above.\u001b[0m\n\n              Df Sum of Sq Wald statistic Pr(Chisq)    \n(Intercept)    1     65703         459.58 &lt; 2.2e-16 ***\nsite.year      1      1278           8.94  0.002792 ** \nresidual (MS)          143                             \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\nNOTE: if you really want to do sig. tests on your mixed-model’s fixed effects, do some reading first. There are some options we should consider regarding the Wald test. Namely, I believe it does an equivalent of a Type I SS (sequential). I think (am not certain) you can achieve something like a Type III (non-sequential) with something like this wald(fit, ssType=\"conditional\", denDF=\"numeric\"). Verify.",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#variance-structures-1",
+    "href": "lessons/4_MoreMixedModels.html#variance-structures-1",
+    "title": "More Complex Mixed Models",
+    "section": "Variance structures",
+    "text": "Variance structures\nNext, let’s fit a more appropriate data to the model, one that lmer cannot do.\nThere are several possibilities: 1. Fit a heterogeneous (different) error variance for each site.year 2. There are a few entry in 24AL that are not in 25AL, one could estimate a different genetic variance for each site.year. 3. Variance among complete blocks could differ between site.years.\nFor demo purposes, I’ll focus on the heterogeneous errors. That’s what’s most plausible IMHO.\n\nasr_heterror&lt;-asreml(biomass.1 ~site.year,\n                     random = ~entry + rep + site.year:entry,\n                     residual = ~dsum(~units|site.year),\n                     data = al_alt %&gt;% arrange(site.year,X))\n\nASReml Version 4.2 28/01/2026 11:01:49\n          LogLik        Sigma2     DF     wall\n 1     -371.5225           1.0    114   11:01:49\n 2     -367.8455           1.0    114   11:01:49\n 3     -364.3065           1.0    114   11:01:49\n 4     -362.4049           1.0    114   11:01:49\n 5     -362.2450           1.0    114   11:01:49\n 6     -362.2319           1.0    114   11:01:49\n 7     -362.2270           1.0    114   11:01:49\n 8     -362.2242           1.0    114   11:01:49\n 9     -362.2221           1.0    114   11:01:49\n10     -362.2202           1.0    114   11:01:49  (  1 restrained)\n11     -362.2197           1.0    114   11:01:49  (  1 restrained)\n12     -362.2197           1.0    114   11:01:49  (  1 restrained)\n\n\n\n# summary(asr_heterror)$varcomp\nlucid::vc(asr_heterror)\n\n           effect component std.error z.ratio bound %ch\n              rep   0.00001        NA      NA     B  NA\n            entry  20.7         37.16    0.56     P   0\n  site.year:entry  74.16        43.06    1.7      P   0\n site.year_24AL!R 196           47.75    4.1      P   0\n site.year_25AL!R  80.66        21.29    3.8      P   0\n\n\nNotice that two separate error variance estimates are produced, one for each site.year.\nLooks like 25AL had smaller error than 24AL.\nNow we have a nested model between the original and the one with added het. errors.\nTwo ways to compare:\n\nlrt(asr_mm,asr_heterror)\n\nLikelihood ratio test(s) assuming nested random models.\n(See Self & Liang, 1987)\n\n                    df LR-statistic Pr(Chisq)  \nasr_heterror/asr_mm  1       5.3265    0.0105 *\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\nOk, so the LRT says these two models are different.\n\nplot(asr_heterror)\n\nWith complex residual structures, it appears asreml won’t auto-plot your residual diagnostics.\nDistribution of residuals\n\nhist(residuals(asr_heterror))\n\n\n\n\n\n\n\n\nStandardized residuals vs. fitted.\n\nplot(x=fitted(asr_heterror),y=scale(residuals(asr_heterror))); abline(b = 0,h = 0)\n\n\n\n\n\n\n\n\nQQ plot:\n\nres&lt;-residuals(asr_heterror)\nqqnorm(res); qqline(res, col = \"red\")",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#model-comparison",
+    "href": "lessons/4_MoreMixedModels.html#model-comparison",
+    "title": "More Complex Mixed Models",
+    "section": "Model comparison",
+    "text": "Model comparison\nAIC and BIC are computed by asreml and available in the summary object. As long as you’ve got the same data and fixed-effects, you can use this along with the LRT to determine which model is best fit.\n\nsummary(asr_mm)$aic\n\n[1] 737.766\nattr(,\"parameters\")\n[1] 4\n\n\n\nsummary(asr_heterror)$aic\n\n[1] 734.4394\nattr(,\"parameters\")\n[1] 5\n\n\nSo the heterror model does have a lower AIC value. Along with the LRT p-value, we can declare this a significantly better model.\n\nasr_heterror_nullg&lt;-asreml(biomass.1 ~site.year,\n                           random = ~rep + site.year:entry,\n                           residual = ~dsum(~units|site.year),\n                           data = al_alt %&gt;% arrange(site.year,X), \n                           maxit=90)\n\nASReml Version 4.2 28/01/2026 11:01:50\n          LogLik        Sigma2     DF     wall\n 1     -376.5979           1.0    114   11:01:50\n 2     -371.1740           1.0    114   11:01:50\n 3     -365.8315           1.0    114   11:01:50\n 4     -363.1212           1.0    114   11:01:50\n 5     -362.4069           1.0    114   11:01:50\n 6     -362.3648           1.0    114   11:01:50\n 7     -362.3575           1.0    114   11:01:50\n 8     -362.3539           1.0    114   11:01:50\n 9     -362.3515           1.0    114   11:01:50\n10     -362.3495           1.0    114   11:01:50  (  1 restrained)\n11     -362.3482           1.0    114   11:01:50  (  1 restrained)\n12     -362.3481           1.0    114   11:01:50  (  1 restrained)\n13     -362.3481           1.0    114   11:01:50  (  1 restrained)\n\n\n\nlrt(asr_heterror_nullg,asr_heterror)\n\nLikelihood ratio test(s) assuming nested random models.\n(See Self & Liang, 1987)\n\n                                df LR-statistic Pr(Chisq)\nasr_heterror/asr_heterror_nullg  1       0.2568    0.3062\n\n\nYeah, well, still not showing significant genetic variation. Bummer.\n\nsummary(asr_heterror)$aic - summary(asr_heterror_nullg)$aic\n\n[1] 1.743201\nattr(,\"parameters\")\n[1] 5\n\n\nThe AIC of the full model is higher than the null.\nWhat about the GxE term?\n\nasr_heterror_nullgxe&lt;-asreml(biomass.1 ~site.year,\n                           random = ~entry + rep,\n                           residual = ~dsum(~units|site.year),\n                           data = al_alt %&gt;% arrange(site.year,X), \n                           maxit=90)\n\nASReml Version 4.2 28/01/2026 11:01:50\n          LogLik        Sigma2     DF     wall\n 1     -376.8922           1.0    114   11:01:50\n 2     -372.0801           1.0    114   11:01:50\n 3     -367.5884           1.0    114   11:01:50\n 4     -365.4995           1.0    114   11:01:50\n 5     -364.8730           1.0    114   11:01:50\n 6     -364.7547           1.0    114   11:01:50  (  1 restrained)\n 7     -364.7217           1.0    114   11:01:50  (  1 restrained)\n 8     -364.7161           1.0    114   11:01:50  (  1 restrained)\n 9     -364.7154           1.0    114   11:01:50  (  1 restrained)\n\nlrt(asr_heterror_nullgxe,asr_heterror)\n\nLikelihood ratio test(s) assuming nested random models.\n(See Self & Liang, 1987)\n\n                                  df LR-statistic Pr(Chisq)  \nasr_heterror/asr_heterror_nullgxe  1       4.9914   0.01274 *\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nsummary(asr_heterror)$aic - summary(asr_heterror_nullgxe)$aic\n\n[1] -2.991408\nattr(,\"parameters\")\n[1] 5\n\n\nOk! So the GxSiteYear term is significant and improves model fit.\nThere’s more that can be done here, alternative models that could be tested.\nGood enough for our demo.",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#pev-and-rel",
+    "href": "lessons/4_MoreMixedModels.html#pev-and-rel",
+    "title": "More Complex Mixed Models",
+    "section": "PEV and REL",
+    "text": "PEV and REL\nLet’s say we are happy with our model.\nNow we want to extract BLUPs, and compute the Reliability of Prediction.\nThe summary() function includes the “standard errors” of prediction.\n\nblups&lt;-summary(asr_heterror,coef=T)$coef.random %&gt;% \n  # confert to data.frame\n  as.data.frame %&gt;% \n  # change the rownames to a column the the data.frame\n  rownames_to_column(var = \"entry\") %&gt;% \n  # filter to only the BLUPs for the entry main-effect \n  # (output includes all random terms)\n  filter(grepl(\"^entry_\",entry)) %&gt;% \n  # for good measure, tidy data, \n  # need to remove a prefix that asreml added to each entry name\n  mutate(entry=gsub(\"entry_\",\"\",entry,fixed = T))\nblups %&gt;% dim\n\n[1] 35  4\n\n\n\nblups %&gt;% head\n\n         entry   solution std.error    z.ratio\n1      17MDCCH  1.5784997  4.008503  0.3937878\n2      17MDCCS  2.7495080  4.008503  0.6859189\n3      17RMCCL -1.7051249  4.307455 -0.3958544\n4 18NCCCEGiant  1.7966818  4.199167  0.4278663\n5       19MDCC  2.1806776  4.008503  0.5440129\n6     19NCCCLH -0.5985299  4.008503 -0.1493151\n\n\nRecall that \\[REL_i = 1 - \\frac{PEV_i}{\\sigma^2_u}\\]\n\nVg&lt;-summary(asr_heterror)$varcomp[\"entry\",\"component\"]\nblups&lt;-blups %&gt;% \n  mutate(PEV=std.error^2,\n         REL=1-(PEV/Vg))\n\nhist(blups$REL)\n\n\n\n\n\n\n\n\nRecall that the average reliability of prediction for a main genetic effect is an estimator of the heritability (ratio of genetic to total phenotypic variance) (Cullis, Smith, and Coombes (2006); Schmidt et al. (2019)) .\n\nmean(blups$REL)\n\n[1] 0.1914108",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/4_MoreMixedModels.html#heritability",
+    "href": "lessons/4_MoreMixedModels.html#heritability",
+    "title": "More Complex Mixed Models",
+    "section": "Heritability",
+    "text": "Heritability\nWe haven’t talked much about Quantitative Genetics parameters yet.\nThe heritability is a critical parameter in genetics. It expresses that fraction of trait variation that is genetic. It is used, among other things, to predict the response of a population to selection. See “Breeder’s Equation”; we’ll talk about it soon!\nLet’s compare the Cullis estimate (~0.19) to the “traditional” variance component based one.\nThe formula should be something like this:\n\\[\nH^2 = \\frac{\\sigma^2_g}{\\sigma^2_g + \\sigma^2_{g\\times yr} + \\frac{\\bar{\\sigma^2_{e_k}}}{nYrs}}\n\\]\nNote I took the mean error across site.years.\n\nvarcomps&lt;-summary(asr_heterror)$varcomp\nVgXsiteyr&lt;-varcomps[\"site.year:entry\",\"component\"]\nVe_meanPerSite&lt;-mean(varcomps[grepl(\"site.year_\",rownames(varcomps)),\"component\"])\n\nVg / (Vg + VgXsiteyr + Ve_meanPerSite)\n\n[1] 0.08875425",
+    "crumbs": [
+      "Module 1",
+      "More Complex Mixed Models"
+    ]
+  },
+  {
+    "objectID": "lessons/5_DataWrangling.html",
+    "href": "lessons/5_DataWrangling.html",
+    "title": "Data Wrangling and Exploratory Data Analysis",
+    "section": "",
+<<<<<<< HEAD
+    "text": "Previously: More Complex Mixed Models"
+=======
+    "text": "Previously: Intro to Mixed Models"
+>>>>>>> e3d92ed15b1fe685ce2c792edeaf08bf0b9b814f
+  },
+  {
+    "objectID": "lessons/5_DataWrangling.html#summarize-the-data",
+    "href": "lessons/5_DataWrangling.html#summarize-the-data",
+    "title": "Data Wrangling and Exploratory Data Analysis",
+    "section": "Summarize the data",
+    "text": "Summarize the data\n\nFind a balanced chunk of the data.\nBalance is going to mean a lack of missing data for most or all traits.\nI suggest taking out 2-4 site.years worth.\n\n\nalt %&gt;% \n  filter(site==\"AL\") %&gt;% \n  group_by(site.year) %&gt;% \n  summarize(PropMissingBiomass=length(which(is.na(biomass.1)))/n(),\n            Nentries=length(unique(entry)),\n            Nobs=n())\n\n\nalt$biomass.1 %&gt;% is.na\nalt$biomass.1 %&gt;% is.na %&gt;% which\nlength(which(is.na(alt$biomass.1)))/nrow(alt)"
+  },
+  {
+    "objectID": "lessons/5_DataWrangling.html#multi-trial",
+    "href": "lessons/5_DataWrangling.html#multi-trial",
+    "title": "Data Wrangling and Exploratory Data Analysis",
+    "section": "Multi-trial",
+    "text": "Multi-trial"
+  },
+  {
+    "objectID": "lessons/5_DataWrangling.html#gxe",
+    "href": "lessons/5_DataWrangling.html#gxe",
+    "title": "Data Wrangling and Exploratory Data Analysis",
+    "section": "GxE",
+    "text": "GxE"
+  },
+  {
+    "objectID": "lessons/5_DataWrangling.html#two-stage",
+    "href": "lessons/5_DataWrangling.html#two-stage",
+    "title": "Data Wrangling and Exploratory Data Analysis",
+    "section": "Two-stage",
+    "text": "Two-stage"
   }
 ]
