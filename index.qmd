@@ -28,3 +28,6 @@ Department of Crop, Soil & Environmental Sciences, Auburn University
 -   [Lesson 2 - Linear Models with Matrices](lessons/2_LinearModels.html) - `lm`
 -   [Lesson 3 - Intro to Mixed Models](lessons/3_MixedModels.html) - `lmer`
 -   [Lesson 4 - More Complex Mixed Models](lessons/4_MoreMixedModels.html) - `asreml`
+-   [Lesson 5 - Multivariate and Multi-stage Mixed Models](lessons/5_AdvancedMixedModels.html) - `asreml`
+
+

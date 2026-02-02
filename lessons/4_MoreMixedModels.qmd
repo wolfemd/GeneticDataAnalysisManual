@@ -465,7 +465,7 @@ There's more that can be done here, alternative models that could be tested.
 
 Good enough for our demo.
 
-## PEV and REL
+## PEV and REL {#sec-pev-and-rel}
 
 Let's say we are happy with our model.
 
@@ -493,8 +493,7 @@ blups %>% dim
 blups %>% head
 ```
 
-Recall that 
-$$REL_i = 1 - \frac{PEV_i}{\sigma^2_u}$$
+Recall that $$REL_i = 1 - \frac{PEV_i}{\sigma^2_u}$$
 
 ```{r}
 Vg<-summary(asr_heterror)$varcomp["entry","component"]
@@ -561,6 +560,34 @@ Now it's your turn!
 
 # Next
 
-[**Advanced Mixed Model Topics**]{.underline}**:** Probable Topics (multi-env. trial analysis, two-stage analysis, GxE, spatial models, heritability)
+[[**Advanced Mixed Model Topics**]{.underline}](5_AdvancedMixedModels.qmd)**:** Probable Topics (multi-env. trial analysis, two-stage analysis, GxE, spatial models, heritability)
 
-[**Hands-on Data Wrangling and Exploratory Data Analysis**](5_DataWrangling.qmd){.underline}**:** how to manipulate and plot your data, functions, loops and analyzing multiple traits.
+**Hands-on Data Wrangling and Exploratory Data Analysis:** how to manipulate and plot your data, functions, loops and analyzing multiple traits.
+
+# In-class
+
+```{r}
+alt %>% count(site)
+alt<-alt %>% 
+  mutate(entry=as.factor(entry),
+         site=as.factor(site))
+alt_fit<-asreml(biomass.1 ~ 1,
+       random = ~entry+site,
+       data = alt)
+summary(alt$biomass.1)
+summary(alt_fit)
+
+alt_fixfit<-asreml(biomass.1 ~ -1+entry,
+       random = ~site,
+       data = alt)
+coef(alt_fixfit)$fixed %>% head
+
+```
+
+```{r}
+alt_fixfit1<-asreml(biomass.1 ~ 0+entry,
+       random = ~site,
+       data = alt)
+coef(alt_fixfit1)$fixed %>% head
+
+```

@@ -21,16 +21,18 @@ website:
           - lessons/2_LinearModels.qmd
           - lessons/3_MixedModels.qmd
           - lessons/4_MoreMixedModels.qmd
+          - lessons/5_AdvancedMixedModels.qmd
 
 format:
   html:
     theme: cosmo
     toc: true
     toc-float: true
-    toc-depth: 3
+    toc-depth: 4
     code-copy: true
     smooth-scroll: true
     grid:
       sidebar-width: 280px
     embed-resources: true
     self-contained-math: true
+    html-math-method: mathml

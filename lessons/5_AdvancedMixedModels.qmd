@@ -1,0 +1,840 @@
+---
+title: "Multivariate and Multi-stage Mixed Models"
+author: "Marnin Wolfe"
+format: 
+  html:
+    html-math-method: mathml
+execute:
+  error: true
+bibliography: references.bib
+---
+
+**Previously**: [More Complex Mixed Models](4_MoreMixedModels.qmd)
+
+# Lesson plan
+
+Our goal today is to fill out our capabilities with `asreml` / mixed-models.
+
+Several additional layers of modelling options in `asreml`:
+
+1.  Spatial autoregressive models or Residuals
+2.  Estimating genetic correlations with Multi-trait models
+3.  Two-stage analysis (discussion only, hands-on later) for downstream GWAS/GP
+
+# Part I: Spatial and Multi-trait
+
+## Spatial analysis
+
+Often, the exact row-column design (spatial layout) of field trials varies from year-to-year.
+
+We already talked about some capacity of mixed-models to account for heterogeneous error variance among trials.
+
+However, real fields can present gradients or other patterns that are not foreseeable when designing experiments. For example, variation in soil water holding capacity or pH, nutrients, etc. Those factors cause spatial correlation patterns between the errors that may not be accounted for by the experimental blocking effects.
+
+If unaccounted for, these kinds of phenomena will bias our conclusions about the genetic units in the experiment.
+
+![An example of spatial variation within a field. Likely an error during pre-emergence herbicide resulted in the visible pattern. Unfortunately, the complete blocks in this experimental design run perpendicular (left-right) to the weed pressure. Correcting the residuals will be crucial to a fair evaluation of the clovers in this nursery.](images/clipboard-2658158794.png){width="412"}
+
+**So, what are our options?**
+
+### IID Residuals
+
+**Option 1:** By default we model errors as independent and identically distributed: $\epsilon \sim N(0,\textbf{I}\sigma^2_e)$. Basically, ignore variation within field.
+
+For this model, the residual structure, with regards to the field dimensions looks like this:
+
+![](images/clipboard-1874362857.png){width="336"}
+
+**Option 2:** We can include main-effects in the model for `range` and `row` (field dimensions), as random post-hoc blocking factors.
+
+### Spatial Autoregressive Models
+
+**Option 3** and our focus for today: In this approach, a correlation matrix is applied to the residuals such that errors are correlated with the degree of correlation proportional to spatial proximity. Autocorrelation can be applied to one or both spatial dimensions. The **R** matrix should look something like this:
+
+$$
+R = \sigma^2_e\Sigma_c(\rho_c) \otimes \Sigma_r(\rho_r)
+$$
+
+![](images/clipboard-2934289218.png)
+
+$\Sigma_c(\rho_c)$ is a correlation matrix for the **columns**
+
+$\Sigma_r(\rho_r)$ is a correlation matrix for the **rows**
+
+![](images/clipboard-2557132593.png)
+
+They are square and symmetric matrices (i.e. row-by-row and col-by-col).
+
+Row matrix has dimension $r \times r$. Column matrix has $c \times c$.
+
+$\rho_c$ and $\rho_r$ are auto-correlation parameters that get estimated when we fit the model with REML. The exponents on $\rho$ cause correlation to drop-off to zero with distance between plots.
+
+In @isik2017 (Chapter 7), the example of a 3 row by 4 column design is given:
+
+![](images/clipboard-600398307.png)
+
+An "AR1 x AR1" model means a model with autoregressive correlation structure for both the ROW and COLUMN effects.
+
+![](images/clipboard-183418734.png)
+
+Model selection procedures include LRTs and AIC/BIC should be used to decide whether and which spatial approach to use.
+
+### Example
+
+```{r, warning=F, message=F}
+library(tidyverse)
+library(asreml)
+```
+
+```{r}
+alt<-read.csv(here::here("data","19-25CC_ALT_DATA_ALL_2025-08-23.csv"))
+
+# My example data chunk
+# This time expanding to include 2 sites, 2 years
+# Still small, but suits my examples
+# Keep using your own!
+alny_alt<-alt %>% 
+  filter(site %in% c("AL","NY"),
+         year %in% c(24,25))
+```
+
+#### Plot spatial patterns
+
+Let's look for some spatial patterns to model
+
+```{r}
+alny_alt %>% 
+  group_by(site,site.year) %>% 
+  summarize(range=max(range),
+            row=max(row))
+```
+
+4 site.years
+
+4 different layouts
+
+```{r}
+alny_alt %>% 
+  ggplot(.,aes(x=site.year,fill=rep,y=biomass.1)) + geom_boxplot()
+```
+
+Let's make some plots. Do you see any trends or patterns across the spatial dimensions?
+
+```{r, fig.height=6, fig.width=5}
+alny_alt %>% mutate(range=as.character(range)) %>% 
+  ggplot(.,aes(x=range,fill=range,y=biomass.1)) + geom_boxplot() + facet_grid(site+year~.,scales='free')
+```
+
+```{r}
+alny_alt %>% mutate(row=factor(row,levels=1:13)) %>% 
+  ggplot(.,aes(x=row,fill=row,y=biomass.1)) + geom_boxplot() + facet_grid(site+year~.,scales='free')
+```
+
+My attempt to make a heatmap of the spatial variation in biomass from one site.year:
+
+```{r}
+alny_alt %>% 
+  filter(site.year=="24NY") %>% 
+  select(row,range,biomass.1) %>% 
+  spread(range,biomass.1) %>% as.matrix %>% 
+  image(.)
+```
+
+#### Pick an single trial
+
+```{r}
+ny24_alt<-alny_alt %>% 
+  filter(site.year=="24NY")
+ny24_alt<-ny24_alt %>% 
+# Make factors before modeling
+  mutate(entry=as.factor(entry),
+         rep=as.factor(paste0(site.year,"-",rep)),
+         row=as.factor(row),
+         range=as.factor(range)) %>% 
+  arrange(range,row)
+
+```
+
+For our current purpose, let's analyze just one site-year.
+
+```{r}
+iid_error <- asreml(biomass.1~rep, 
+                    random=~entry,
+                    data=ny24_alt)
+summary(iid_error)$varcomp
+```
+
+#### Row/Range as random
+
+```{r}
+row_random <- asreml(biomass.1~rep, 
+                     random=~entry+row,
+                     data=ny24_alt)
+# summary(row_random)$varcomp
+lucid::vc(row_random)
+```
+
+```{r}
+lrt(iid_error, row_random)
+```
+
+```{r}
+rng_random <- asreml(biomass.1~rep, 
+                     random=~entry+range,
+                     data=ny24_alt)
+# summary(rng_random)$varcomp
+lucid::vc(rng_random)
+```
+
+```{r}
+lrt(iid_error, rng_random)
+```
+
+```{r}
+# this should be identical to the "iid" residuals model, just allow me to plot residual variogram
+iid_error1<-asreml(biomass.1~rep, 
+                   random=~entry,
+                   residual=~id(range):id(row),
+                   data=ny24_alt)
+plot(varioGram(iid_error1))
+```
+
+#### AR1
+
+```{r}
+ar1_rng <- asreml(biomass.1~rep, 
+                  random=~entry,
+                  residual=~ar1(range):id(row),
+                  data=ny24_alt)
+plot(varioGram(ar1_rng))
+```
+
+```{r}
+lrt(iid_error1, ar1_rng)
+```
+
+```{r}
+summary(iid_error1)$aic
+```
+
+```{r}
+summary(ar1_rng)$aic
+```
+
+```{r}
+lucid::vc(ar1_rng)
+```
+
+Genetic variance went up!
+
+```{r}
+ar1_row <- asreml(biomass.1~rep, 
+                  random=~entry,
+                  residual=~id(range):ar1(row),
+                  data=ny24_alt)
+plot(varioGram(ar1_row))
+```
+
+```{r}
+lrt(iid_error1, ar1_row)
+summary(iid_error1)$aic
+summary(ar1_row)$aic
+lucid::vc(ar1_row)
+```
+
+```{r}
+ar1_rngrow <- asreml(biomass.1~rep, 
+                     random=~entry,
+                     residual=~ar1(range):ar1(row),
+                     data=ny24_alt)
+plot(varioGram(ar1_rngrow))
+```
+
+```{r}
+lrt(iid_error1, ar1_rngrow)
+summary(iid_error1)$aic
+summary(ar1_rngrow)$aic
+lucid::vc(ar1_rngrow)
+```
+
+```{r}
+summary(iid_error1)$aic
+summary(ar1_rngrow)$aic
+summary(ar1_rng)$aic
+```
+
+#### Add a "nugget"
+
+The `units` term is sometimes called the "nugget effect" or the "measurement error".
+
+Add a plot-level (one level for each experimental unit) random-effect to the model in addition to the spatial residual term.
+
+Separates residual effects into two parts. portion independent among plots and another part for correlated errors associated with spatial distance.
+
+The correlated-effects might be b/c soil fertility, water holding capacity, etc.
+
+The measurement error (nugget) due might be due to 'permanent environment' or field position effects; something constant, like having a cow sit on a particular plot.
+
+```{r}
+ar1_rngrow_nugget <- asreml(biomass.1~rep, 
+                            random=~entry+idv(units),
+                            residual=~ar1(range):ar1(row),
+                            data=ny24_alt, maxit=90)
+lrt(iid_error1, ar1_rngrow_nugget)
+lrt(ar1_rngrow, ar1_rngrow_nugget)
+summary(ar1_rngrow)$aic
+summary(ar1_rngrow_nugget)$aic
+summary(ar1_rngrow_nugget)$varcomp
+```
+
+Adding the "nugget" made a poorer fit model.
+
+Has better application with long-term perennial plots, for example.
+
+### Heritability and spatial models
+
+Spatially correlated residual model introduces some complications for estimating heritability.
+
+AR models may provide a better fit to data but can inflate the residual variance.
+
+For "traditional" variance component-based heritability estimates, `asreml` provides a handy function called `vpredict()`.
+
+```{r}
+# Handy asreml function: vpredict 
+## Calculates functions of the variance components and their std. errors
+#iid_error$vparameters
+vpredict(iid_error,H2~V1/(V1+V2))
+```
+
+```{r}
+# Handy asreml function: vpredict 
+## Calculates functions of the variance components and their std. errors
+vpredict(ar1_rngrow,H2~V1/(V1+V2+V3))
+```
+
+The alternative is $1-\frac{\bar{PEV}}{\sigma^2_g}$, the mean reliability (see [previous lesson](4_MoreMixedModels.qmd)).
+
+```{r}
+# extract BLUPs and make them into a data.frame
+blups<-summary(ar1_rngrow,coef=T)$coef.random %>% 
+  as.data.frame %>% 
+  rownames_to_column(var = "entry") %>% 
+  filter(grepl("^entry_",entry)) %>% 
+  mutate(entry=gsub("entry_","",entry,fixed = T))
+# extract Vg (variance component associated with "entry" effect)
+sigma2g<-summary(ar1_rngrow)$varcomp["entry","component"]
+# Compute PEV and REL for each BLUP
+blups<-blups %>% 
+  mutate(PEV=std.error^2,
+         REL=1-(PEV/sigma2g))
+# Mean REL is our estimate of heritability:
+mean(blups$REL)
+```
+
+### Multi-trial
+
+You can use the `dsum()` function like we did previously, along with auto-regressive structures. This allows to model each trial's spatial error separately.
+
+```{r}
+# Make factors before modeling
+alny_alt<-alny_alt %>% 
+  mutate(entry=as.factor(entry),
+         site.year=as.factor(site.year),
+         site=as.factor(site),
+         # unless you are expecting / modeling a linear trend in year
+         # convert it to factor
+         year=as.factor(year),
+         # explicitly nest values of rep in site.year
+         # review explicit vs. implicit nesting
+         rep=as.factor(paste0(site.year,"-",rep)),
+         row=as.factor(row),
+         range=as.factor(range)) %>% 
+  # ORDER IS IMPORTANT HERE
+  arrange(site.year,range,row)
+
+ar1_alny <- asreml(biomass.1~1+site.year, 
+                     random=~entry+rep,
+                     residual=~dsum(~ar1(range):ar1(row)|site.year),
+                     data=alny_alt, maxiter=90)
+plot(varioGram(ar1_alny))
+```
+
+```{r}
+summary(ar1_alny)$varcomp
+```
+
+### Alternatives to AR models
+
+If your design isn't rectangular or there is significant missingness in the data, the autoregressive model can pose problems.
+
+An alternative is to use splines as described by @rodríguez-álvarez2018. This can be implemented using the `sommer` mixed-model R package or the `SpATs` packages. Splines are less susceptible to missing data and also don't mind non-rectangular designs.
+
+## Multi-trait models
+
+### Background
+
+Recommend reading @isik2017 - Chapter 6.
+
+Multiple responses variables (traits) can be jointly analyzed with a mixed-model. Such models enable the estimation of genetic correlations (genetic variance-covariance) between traits.
+
+**What is genetic correlation?**
+
+The tendency of different phenotypes to be **co-inherited**.
+
+Trait variances can be decomposed into genetic and environmental components. So can covariances.
+
+![Phenotypic correlation due to genetic + environmental sources](images/clipboard-60153423.png)
+
+![Genetic variance components for two traits *x* and *y*. A = Additive; D = Dominance; AA, AD and DD = Epistasic components](images/clipboard-1959465970.png)
+
+![Additive genetic correlation.](images/clipboard-1557175463.png){width="222"}
+
+**Where do genetic correlations come from?**
+
+-   Genetically speaking: plieotropy (one allele influences multiple traits) and linkage (alleles at different loci are co-inherited)
+-   Population processes:
+    -   Selection on a suite of traits (correlational selection)
+    -   Assortative mating (multi-trait mate preferences)
+    -   Gene flow / migration (mixing of different populations)
+    -   Maternal / Paternal effects (parental genotype influences offspring phenotype)
+    -   Genetic drift
+
+**Why do we care? What are genetic correlations "good for"?**
+
+Genetic correlations influence the direction of selection **response** and can either *facilitate* or else *constrain* evolutionary change in a population.
+
+$$
+R = Gb
+$$
+
+This is one version of what we call the "Breeder's Equation" [@Hill2004; @lande1983; @anima1946].
+
+-   **R** is a column vector, responses in each character (across generations) to selection
+-   **b** is a column vector of selection gradients (depicting the strength and direction of selection on one or more traits.
+-   **G** is a matrix of (additive) genetic variance-covariance between traits.
+
+In short, select response tends in the direction of genetic correlations, even if the direction of selection is opposed to the correlation. Example: if seed size and seed number or negatively genetically correlated, selection for larger seed size and number will proceed very slowly.
+
+Practically, genetic correlations can be used to predict the effectiveness of indirect selections on one trait.
+
+**Statistical / Analytic Benefits:**
+
+Multivariate mixed-models for low heritability traits (like grain yield or biomass) typically have low selection accuracy. When there are correlated traits, potentially that are more precisely measurable and/or have higher heritability, joint multivariate modeling can increase our accuracy. By exploiting their covariances with higher heritability traits (such as size and morphology), yield or lower heritability traits can be better evaluated.
+
+Multivariate models can accommodate the implicit structure of the selection process.
+
+For example, in open-pollinated clover breeding, culling selection is used to remove poor performing plants *before* they flower. Early on, we score traits on ALL plants. Later, after we apply selection, when we record trait data we are missing data on the culled plants. In other words, the data are not missing at random but are missing more frequently for later-recorded traits.
+
+We'll circle back to benefits and use cases as we talk more about plant breeding and quantitative genetics.
+
+For now, let's look at two ways to estimate genetic variance-covariance between traits in `asreml`.
+
+------------------------------------------------------------------------
+
+Consider the following equation for a mixed linear model:
+
+$$y = Xb + Zu + e$$
+
+$$var(y)=V = ZGZ'+ R$$
+
+The default variance of random effects is $𝐺=𝐼\sigma^2_u$ and of residuals is $𝑅=I\sigma^2_e$.
+
+However, there are other variance-covariance functions available in `asreml` that can be tested. Each of these breaks the assumption of independence between components. For example:
+
+| Model | Number Parameter | Description | asreml-R |
+|:-----------------|:----------------|:-----------------|:-----------------|
+| Identity | 1 | Identical variation | `id` |
+| Diagonal | M | Heterogeneous variations | `diag` |
+| CS | 2 | Compound symmetry with homogeneous variance | interation model |
+| CS Het | M+1 | Compound symmetry with heterogeneous variance | `corh` |
+| AR1 | M+1 | First order autoregressive model | `ar1` |
+| Unstructured | M(M+1)/2 | Unstructured model | `us` |
+
+Graphically:
+
+![In a graphical representation, we will assume 4 genotypes that were evaluated in four different locations. Credit: Ferrao](images/clipboard-4217520392.png)
+
+The multivatiate mixed-model can be written by stacking univariate mixed-models on top of each other and adding covariance parameters to-be-estimated to the matrices **G** and **R**.
+
+$$
+y_1 = X_1b + Z_1u_1 + e_1
+$$
+
+$$
+y_2 = X_2b + Z_2u_2 + e_2
+$$
+
+$$
+\begin{bmatrix} {y_1} \\ {y_2}  \end{bmatrix} =
+\begin{bmatrix} {X_1} & {0}\\  {0} & {X_2} \end{bmatrix}
+\begin{bmatrix} {b_1}  \\ {b_2} \end{bmatrix} +
+\begin{bmatrix} {Z_1} & {0}\\  {0} & {Z_2} \end{bmatrix}
+\begin{bmatrix} {u_1}  \\ {u_2} \end{bmatrix} +
+\begin{bmatrix} {e_1}  \\ {e_2} \end{bmatrix}
+$$
+
+-   $𝑦_𝑖$ = vector of observations for the ith trait;
+
+-   $𝑏_𝑖$ = vector of fixed effects for the ith trait;
+
+-   $u_𝑖$ = vector of random genetic (plant-genotype-level) effects for the ith trait;
+
+-   $𝑒_𝑖$ = vector of random residual effects for the ith trait;
+
+-   $𝑋_𝑖$ and $𝑍_𝑖$ = incidence matrices relating records of the ith trait to fixed and random animal effects.
+
+Below, you can see what the **V** matrix looks like in this simple case of two traits. Notice the terms $g_{21}$ and $g_{12}$ plus $r_{21}$ and $r_{12}$. These represent genetic and residual covariances that will be estimated when the model is fit. Univariate models simply assume dthese covariances = 0.
+
+$$
+var\begin{bmatrix} {u_1} \\ {u_2} \\ {e_1} \\ {e_2} \end{bmatrix} = V =
+\begin{bmatrix} {g_{11}} & {g_{12}} & {0} &{0} \\
+                {g_{21}} & {g_{22}} & {0} &{0} \\
+                0 & 0 & {r_{11}} &{r_{12}} \\
+                0 & 0 & {r_{21}} &{r_{22}} \\
+\end{bmatrix}
+$$ $$
+G = \begin{bmatrix} {\sigma^2_{u_1}} & {\sigma^2_{u_{12}}} \\
+                    {\sigma^2_{u_{12}}} & {\sigma^2_{u_{2}}}
+\end{bmatrix} \otimes I;
+R = I \otimes \begin{bmatrix} {\sigma^2_{e_1}} & {\sigma^2_{e_{12}}}
+\\
+                    {\sigma^2_{e_{12}}} & {\sigma^2_{e_{2}}}
+\end{bmatrix}
+$$
+
+Let's look at raw phenotypic correlations:
+
+```{r}
+alny_alt %>% 
+  select(biomass.1,fall.vigor.av,spring.vigor.av) %>% 
+  as.matrix %>% 
+  cor(., use='pairwise.complete.obs') %>% round(.,2)
+```
+
+Positive phenotypic correlation between biomass.1 and spring.vigor.av. 
+
+### Wide model: matrix of responses
+
+There are two ways to accomplish a multi-trait model in asreml: "wide" and "long" form.
+
+Wide form poses the two phenotypes as different responses and your **Y** vector becomes a matrix with a column for each trait. Long form stacks the traits such that **Y** remains a column vector.
+
+Let's try modeling those two traits.
+
+NOTE: You'll see a special term "traits" appear. Like "units", it is a special term using by asreml. It creates an internal factor corresponding to the columns in the response matrix (the traits). 
+
+```{r}
+# Make factors before modeling
+alny_df<-alny_alt %>% 
+  mutate(entry=as.factor(entry),
+         site.year=as.factor(site.year),
+         site=as.factor(site),
+         # unless you are expecting / modeling a linear trend in year
+         # convert it to factor
+         year=as.factor(year),
+         # explicitly nest values of rep in site.year
+         # review explicit vs. implicit nesting
+         rep=as.factor(paste0(site.year,"-",rep)),
+         row=as.factor(row),
+         range=as.factor(range)) %>% 
+     # ORDER IS IMPORTANT HERE
+  arrange(site.year,range,row)
+
+# I started by fiddling with a simpler model
+### notice the lack of residual structure
+# alny_mod <- asreml(cbind(biomass.1,spring.vigor.av)~trait+trait:site.year, 
+#                    random=~us(trait):entry + at(trait):rep,
+#                    residual=~id(units):diag(trait),
+#                    data=alny_df, maxiter=90,
+#                    na.action = na.method(y = "include", x = "include"))
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+# After verifying this worked, I added back the AR1:AR1 design like so:
+alny_mod <- asreml(cbind(biomass.1,spring.vigor.av)~trait+trait:site.year, 
+                  random=~us(trait):entry + at(trait):rep,
+                  residual=~dsum(~ar1(range):ar1(row):diag(trait)|site.year),
+                  data=alny_df, maxiter=90,
+                  na.action = na.method(y = "include", x = "include"))
+```
+```{r}
+summary(alny_mod)$varcomp
+```
+
+
+What you should notice is that the variance and covariance estimates are all listed in a data.frame.
+
+Unfortunately, I'm unaware of a convenience function that makes it into a simple var-covar matrix. 
+
+Here's my hack:
+
+```{r}
+# Extract only the estimates
+g11<-summary(alny_mod)$varcomp %>% .[grepl("biomass.1:biomass.1",rownames(.)),"component"]
+g12<-g21<-summary(alny_mod)$varcomp %>% .[grepl("spring.vigor.av:biomass.1",rownames(.)),"component"]
+g22<-summary(alny_mod)$varcomp %>% .[grepl("spring.vigor.av:spring.vigor.av",rownames(.)),"component"]
+
+# Manually construct a matrix
+G<-matrix(c(g11,g12,g21,g22),
+            2, 2, byrow=TRUE,
+            dimnames=list(c("biomass.1","spring.vigor.av"),
+                          c("biomass.1","spring.vigor.av")))
+G
+```
+Convert to correlations 
+```{r}
+cov2cor(G)
+```
+
+The BLUPs can be extracted same as before.
+
+They do require a bit of clean-up to their names.
+
+The code below has a bunch of steps but all I'm doing is refactoring the output to be a nice looking data.frame.
+```{r}
+blups<-summary(alny_mod,coef=T)$coef.random %>% 
+  # confert to data.frame
+  as.data.frame %>% 
+  # change the rownames to a column the the data.frame
+  rownames_to_column(var = "entry") %>% 
+  # filter to only the BLUPs for the entry main-effect 
+  # (output includes all random terms)
+  filter(grepl("trait_",entry),
+         grepl(":entry_",entry)) %>% 
+  # Clean up the entry names by remove prefixes
+  mutate(entry=gsub("trait_","",entry),
+         entry=gsub("entry_","",entry)) %>% 
+  # Separate the entry name, it contains both trait and entry names now
+  separate(entry,c("Trait","entry"),sep = ":") %>% 
+  select(Trait,entry,solution) %>% 
+  # Convert from long to wide (put the trait BLUPs next to each other as columns)
+  spread(Trait,solution)
+blups %>% head
+```
+```{r}
+blups %>% 
+  ggplot(.,aes(x=spring.vigor.av,y=biomass.1)) + geom_point() + labs(title='BLUPs from Multivar Model')
+```
+```{r}
+alny_alt %>% 
+  ggplot(.,aes(x=spring.vigor.av,y=biomass.1)) + geom_point()
+```
+
+Last thing I want to show here is **model comparison**.
+
+You can't directly compare a uni-variate to a multivariate model. They are different datasets, after all.
+
+Instead, first fit a multi-trait model with the `us(traits)` variance structure. This estimates the genetic variance-covariances.
+
+Next, fit the same model, but change to `diag(traits)`. This is equivalent to model the two traits separately. 
+
+A LRT and/or AIC comparison can then be made.
+
+```{r, message=FALSE, warning=FALSE}
+alny_mod_diagtraits <- asreml(cbind(biomass.1,spring.vigor.av)~trait+trait:site.year, 
+                              random=~diag(trait):entry + at(trait):rep,
+                              residual=~dsum(~ar1(range):ar1(row):diag(trait)|site.year),
+                              data=alny_df, maxiter=90,
+                              na.action = na.method(y = "include", x = "include"))
+summary(alny_mod_diagtraits)$varcomp
+```
+
+```{r}
+lrt(alny_mod_diagtraits,alny_mod)
+```
+```{r}
+summary(alny_mod)$aic
+```
+
+```{r}
+summary(alny_mod_diagtraits)$aic
+```
+
+We have a clear result. Including the genetic covariance between traits leads to a significantly better model fit.
+
+You can declare those covariance components different from zero.
+
+### Long model: vector of responses
+
+```{r}
+alny_long<-alny_alt %>%
+  pivot_longer(cols = c(biomass.1, spring.vigor.av),
+               names_to  = "trait",
+               values_to = "value",values_drop_na = T) %>%
+  mutate(trait = factor(trait),
+         entry=as.factor(entry),
+         site.year=as.factor(site.year),
+         site=as.factor(site),
+         # unless you are expecting / modeling a linear trend in year
+         # convert it to factor
+         year=as.factor(year),
+         # explicitly nest values of rep in site.year
+         # review explicit vs. implicit nesting
+         rep=as.factor(paste0(site.year,"-",rep)),
+         row=as.factor(row),
+         range=as.factor(range)) %>% 
+   arrange(site.year, range, row, trait)
+alny_long %>% select(site.year,entry,rep,row,range,trait,value) %>% head
+```
+
+Key points:
+
+- Each plot now appears twice (once per trait)
+- Traits are distinguished by the "trait" column
+- Missing values are retained as explicit rows with `value = NA`.
+- Ordering still matters for the AR1 terms
+
+```{r}
+alny_long_mod <- asreml(
+  fixed    = value ~ trait + trait:site.year,
+  random   = ~ us(trait):entry + us(trait):rep,
+  # residual = ~ dsum(~ar1(range):ar1(row):diag(trait) | site.year),
+  data     = alny_long,
+  maxiter  = 90,
+  na.action = na.method(y="include", x="include"))
+```
+
+Modeling this way isn't going so well.
+
+With the residual term specified, I received a warning that there were singularities and the model could not be solved.
+
+Remove the residual term and we get the model to fit... but it says NOT CONVERGED.
+
+Still, we are left with an output I can show you as an example:
+
+```{r}
+summary(alny_long_mod)$varcomp
+```
+
+### Modelling Advice
+
+**NOTICE:** **Multivariate models are computationally challenging**. Memory requirements for REML increases (I think) with the cube of the number of parameters. In other words, adding more traits *very* rapidly increases compute demand. REML sometimes will not converge to a global optimum. Preliminary analyses to estimate "starting values" for REML algorithms to use are often needed.
+
+Some guidance:
+
+-   First analyze single traits (univariate cases)
+-   Make emprical estimates of the variances for each trait AND a univariate approach like the covariance among BLUPs to estimate covariances among traits.
+-   Feed univariate estimates of variance and covariance into `asreml` or your favorite solver as "starting values" to increase the chance of convergence.
+-   Build up step-by-step from single-trait to many/all traits in the analysis.
+-   Monitor your system resources (%CPU, RAM usage) carefully.
+-   Including Pedigree and/or Genomic information as relationship matrices in these models (topics we will cover later) add to the compute cost but can help make them solve-able.
+-   Lastly, it can be helpful to center+scale all of the traits-to-be-analyzed. When confining all traits to the same units (standard deviations), REML may be better behaved. 
+
+
+
+# Part II: Two-stage analysis
+
+Section below is preparatory for your downstream goals (GWAS and GP).
+
+## Don't BLUP twice!
+
+We often have very large, multi-year, multi-location, multi-trial-type (MET) datasets we use for downstream genome-wide association and genomic prediction purposes. The number of plots can be in the range of 10- or even 100,000 plots with many thousands of unique genotypes observed in unbalanced fashion across heterogenous experimental designs. All that to say, the computational burden and level of expertise required to execute such analyses directly on these data is very great.
+
+Because they focus on computational efficiency, many software packages used for GWAS (e.g. FarmCPU @liu2016) limit the fixed and random-effects structures that can be modeled.
+
+In contrast, packages like `asreml` and `sommer` can be used for GWAS, but are optimized to do so.
+
+While a unified, **single-step analysis** is always the statistically best approach, computational burdens still often necessitate a "two-stage" analysis approach:
+
+**Stage 1:** Model the raw data and obtain 'summary values' (at the level of genetic units, e.g. for each genotype in your population), adjusted for the complexities of experimental design.
+
+**Stage 2:** Conduct inference or prediction analysis (e.g. GWAS) using the adjusted genotypic values from Stage 1 as the response.
+
+**Options for Stage 1:**
+
+-   Fit lines as random-effects ❌: shrinkage-based predictions account for potentially unbalanced data.
+-   Fit lines as fixed-effects ✅: makes no assumption of a distribution, does not induce shrinkage accounting for unbalanced data.
+
+Despite the benefits of BLUP for ranking and selection, you should NEVER BLUP TWICE (highly recommend you read @holland2024 also @garrick2009).
+
+**Why not?** In downstream GWAS and GP applications, we usually fit a random-effect for genotypes (lines in your population). We'll talk about why and how later. The problem is, if your dependent-variable in the GWAS analysis is already a shrinkage-based prediction, you'll shrink the distribution twice and lose at least some of the signal you are looking for.
+
+::: {.callout-important appearance="minimal"}
+"It is inappropriate to treat genetic effects as random in both stages, as this results in a BLUP analysis of BLUPs, hence the recommendation “don't BLUP twice.” \~Holland & Piepho 2024
+:::
+
+As depicted in the figure below, you'll want to keep lines as **fixed-effects**, i.e. use BLUEs from Stage 1 for your GWAS/GP analyses.
+
+![From Holland & Piepho 2024: Two-stage analysis workflow for (A) single-environment trials and (B) multienvironment trials. In the first stage of a single-environment trial A), a model Yjk = µ + Gj + Bk + εjk is fit to the data with Gj line effects treated as fixed and Bk block effects treated as random. BLUEs of line values are estimated and used as dependent variables in a second-stage analysis testing each marker's effect: = µ + xjpβp + Aj + ⁠, where xjp is a numeric indicator variable for allele dosage at marker p in line j, βp is the fixed effect of marker p, Aj is the polygenic background effect line j with covariances equal to the genomic relationship matrix G times the additive genetic variance (⁠ ⁠), and is the residual effect, distinguished from plot-level experimental error effects (εjk in stage 1), as it includes both estimation error of the line phenotypic mean value and genetic residual reflecting genotypic values not capture by the genomic relationship matrix. For multienvironment trials B), random terms for environment main effects (Ei) and genotype-by-environment interactions (GEij) are added to the first-stage model, but the second-stage model for marker main effects remains unchanged.](images/clipboard-40780327.png)
+
+## Weighted Analysis
+
+Stage 2 models, without weighting, assume independent and identical errors among the adjusted means being used as the response. However, real and unbalanced data mean there is real information on error variance-covariance among the adjusted-genotype-means from Stage 1 being lost.
+
+There are several ways of preserving that information, as "weights" applied to the residual in Stage 2 @damesa2017 @fernández-gonzález2025.
+
+I'll show you an example of a weight scheme and how it works below.
+
+### De-regression
+
+But first a digression on de-regression.
+
+It *is* possible to fit a mixed-model with genotypes as random and then later un-shrink them. There are some good reasons to do so.
+
+**Deregression** is an approach that is often used in animal breeding [@garrick2009; @holland2024; @isik2017]. BLUPs get un-shrunken before submission to the next stage of analysis.
+
+The de-regressed BLUP (**drgBLUP**) is simply the BLUP divided by a quantity called the **reliability** or $r^2$. It is very similar (possibly equivalent) to the BLUE.
+
+The reliability is defined as: $r^2=1−\frac{PEV}{\sigma^2_g}$
+
+So $drgBLUP = \frac{BLUP}{{r^2}}$
+
+Recall that reliability ranges from 0 to 1 and measures the *certainty* surrounding each **`BLUP`** value; or rather, the probability the **`BLUP`** would change if another experiment (data point) were added. So if $r^2=1$, then we have essentially zero expected error for a BLUP. For example, check varieties often have so many observations in a dataset that they will have high reliability.
+
+So if a de-regressed BLUP is defined as $\frac{BLUP}{r^2}$ you can see that for clones with high reliability, the BLUP will stay essentially the same, but if the reliability is low, the **`BLUP`** will be *un-shrink* or *de-regress* strongly. This is going to happen because genotypes with few observations and thus low reliability will be more strongly shrunken to zero during the first step.
+
+Below is a density plot showing the distribution of the original data compared to the **`BLUP`** and the **`drgBLUP`**. This is meant to show how shrinkage and unshrinkage effect the data. Since BLUPs and drgBLUPs are centered on the mean, I added back the grand mean for comparison to the original data.
+
+![](images/clipboard-419563058.png)
+
+[![Comparing BLUP vs. De-regressed BLUP for two highest (top) and lowest (bottom) reliability genotypes in a dataset of Cassava clones.](images/clipboard-3738050336.png)](https://wolfemd.github.io/GenomicSelectionManual/preliminary-field-trial-analysis.html#de-regression-explained)
+
+### Weighted 2nd stage
+
+Regardless of whether BLUE or drg-BLUP are used in the 2nd stage, if data are unbalanced and/or come from complex data, then the precision of BLUE/drgBLUP is likely to vary. It has been shown to improve accuracy in the 2nd stage to include a weight to the **R**-structure (residual var-covar) according to results of the first stage.
+
+The best way to do that accounts for both variances and covariances among the responses in the second stage; but it is very computationally intensive [@möhring2009; @damesa2017]. Instead, "diagonal" approaches are easier. The **R** structure in stage 2 includes $wI\sigma^2_e$. Where **w** is a $n \times 1$ vector of "weights". There are different options for weights.
+
+@garrick2009 recommended weight is:
+
+$$
+WT = \frac{1-H^{2}}{0.1+\frac{1-r^{2}}{r^{r}} \times H^{2}}
+$$
+
+$H^2$ is broad-sense heritability.
+
+$r^2$ is the reliability.
+
+![I made a plot showing how WT varies across a range of H2 and REL. This is to show how the weighting behaves. As we see, WT scales with REL and H2. H2 conditions the overall variability among individuals in their weight in the analysis. This works such that if heritability is low, there is a greater relative premium (weight) placed on individuals with high quality data (high REL), usually those with high numbers of observations, e.g. check-genotypes. If heritability is high, WTs are low and there isn’t much difference between low and high REL.](images/clipboard-3786224680.png)
+
+![Here’s a plot that shows from the actual blups, how the WT scales with the number of observations-per-genotype.](images/clipboard-1162090844.png)
+
+**FINAL NOTE ON WEIGHTED ANALYSIS:** This is an area that deserves consideration and is actively under discussion / development in the literature. Check-out this very recent article @fernández-gonzález2025.
+
+![Stage-wise analysis presented by Gonzalez and Sanchez, 2025. The single-stage model is on top, with the different types of two-stage models below it. The stage 1 model is common to all types of two-stage models, which only differ on how the stage 2 model accounts for the stage 1 estimation error variance-covariance.](images/clipboard-2019813051.png)
+
+## Example
+
+We didn't cover the downstream applications yet. For that reason, you'll forgive me for saving an example for once we're doing **Stage 2**.
+
+# Hands-on
+
+Now it's your turn!
+
+Our goal remains to jointly analyze the entire ALT dataset and to produce estimates of genetic parameters (heritability) and rankings of the entries (BLUPs). 
+
+For this lesson's activity, you have two added objectives:
+
+1. Determine whether and what spatial models can be fit to the dataset.
+2. Determine whether there are significant genetic correlations between at least a pair of traits in your data chunk.
+
+Use appropriate model comparison procedures to determine the optimal fit for your data.
+
+As before, DATA OPTIONS:
+
+1. Use your previous data chunk (important it includes multiple site-years)
+2. Pick a bigger, more complex chunk
+3. For the very bold: try analyzing the entire dataset.
+
+
