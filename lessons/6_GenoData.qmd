@@ -1,0 +1,452 @@
+---
+title: "Genomic Data Exploration"
+author: "Marnin Wolfe"
+format:
+  html:
+    toc: true
+    code-fold: false
+    html-math-method: mathml
+execute:
+  error: true
+  echo: true
+  warning: false
+  message: false
+bibliography: references.bib
+---
+
+**Previously**: [Spatial, Multi-trait and Multi-stage Models](5_AdvancedMixedModels.qmd)
+
+# Lesson plan
+
+1.  Download example SNP datasets from Canvas and get to know them
+2.  Read a SNP dataset into R in a form suitable for genomic analyses.
+3.  Diagnose common issues: missingness, minor allele frequencies, heterozygosity.
+4.  Visualize population structure using PCA.
+
+# Intro
+
+## File Formats
+
+As we will discuss in lecture, there are many/several data formats the genomic data are stored in.
+
+It is valuable to familiarize yourself with them.
+
+-   **FASTA**: Raw sequence reads, aligned to a reference genome sequence
+
+    -   <div>
+
+        > A sequence begins with a greater-than character ("\>") followed by a description of the sequence (all in a single line). The lines immediately following the description line are the sequence representation, with one letter per amino acid or nucleic acid, and are typically no more than 80 characters in length. \~Wikipedia
+
+        </div>
+
+    -   
+
+        ![Example fasta file. Nucleotide sequences from a single Illumina-type short-read. Usually \~150bp long.](images/clipboard-3267040634.png)
+
+-   **VCF**: Variance Call Files. After aligning raw reads to a genome and after quality control steps, **variant discovery** can be conducted. **Variant discovery** is the process of determining which genomic loci contain naturally varying sequences. **VCF** files are simply text files, no special formatting. However, b/c the data files get quite large, you'll often find them in a compressed form (ending usually in `.vcf.gz`).
+
+    -   We are concerned primarily (in this class) with the most common type of variant– the **single nucleotide polymorphism** (SNP). **SNP** are usually (not always) bi-allelic in a given population; this means that only two different versions (alleles) are found. E.g. A vs. T or G vs. C.
+
+    -   Official specification here: <https://samtools.github.io/hts-specs/VCFv4.2.pdf>
+
+    -   
+
+        ![An example depicted the major components of a VCF file.](images/clipboard-626166742.png)
+
+-   **Hapmap**: often, in crop science, our genotyping data are processed into a simpler-than-vcf form. The **HMP** file is a common one.
+
+    -   
+
+        ![An example of the HMP (hapmap) format, from the GAPIT manual.](images/clipboard-2153419829.png)
+
+    -   <div>
+
+        > The first 11 columns display attributes of the SNPs and the remaining columns show the nucleotides observed at each SNP for each taxa. The first row contains the header labels and each remaining row contains all the information for a single SNP. \~GAPIT manual
+
+        </div>
+
+-   **"plink"** format: `plink` is a really useful program for manipulating and conducting some population genomics analyses. The original `plink` format involves two files a `.ped` and a `.map`. In the last 10 years, (`plink1.9` –\> now `plink2`) have supplanted that with a binary version.
+
+    -   
+
+        ![Overview of various commonly used PLINK files. SNP = single nucleotide polymorphism](images/clipboard-3969306972.png)
+
+    -   Thanks in part to the binary data format, `plink1.9` is lightening fast, even on laptops and for large genomic data. Each of the software formats and file types described above have their uses.
+
+## Command Line (No Excel)
+
+To work with these data files, you will not be able to use EXCEL *or* R (maybe R actually, but not usually for the initial steps or the biggest data).
+
+Working with these data requires command line interface (CLI) and usually a Linux or Unix shell are used.
+
+**NOTE:** I am working on getting our class access the Auburn High Performance Computing (HPC) cluster. In a future class, we can learn to work with these data types. Doing so will require a unified computing environment.
+
+Installing an compiling these programs on everyone's laptops will be a challenge because of different hardware and software configurations.
+
+**Working at the Command Line:** While Mac and Linux are built on a common sub-system (called Unix), Window's OS is not.
+
+-   **Windows:** To access a Unix-like command line environment, you can install the "Windows Subsystem for Linux" (WSL): [Link to Install Page](https://learn.microsoft.com/en-us/windows/wsl/install).
+-   If your working a Mac, or are into Linux (🐧) you can simply open the "Terminal" application.
+
+**Learning Command Line**:
+
+-   [Software Carpentry - "The Unix Shell"](https://swcarpentry.github.io/shell-novice/index.html) - free tutorial / lessons on the basics
+-   [Datacamp - "Introduction to Shell"](https://app.datacamp.com/learn/courses/introduction-to-shell) - free tutorial / lessons on the basics
+-   Others
+    -   <https://www.codecademy.com/learn/learn-the-command-line/modules/learn-the-command-line-navigation/cheatsheet>
+    -   [Secure Copy Protocol (SCP) - Transfer Files using SSH & Command Line on Windows 10 to Linux / Other](https://www.youtube.com/watch?v=2u0I-U0D7Uk&ab_channel=SavvyNik)
+    -   [SSH Client on Windows 10 Using the Command Prompt \| SSH from Windows to Linux and Other Systems](https://www.youtube.com/watch?v=JbMgOKlj5fE&ab_channel=SavvyNik)
+
+**Common Command Line Programs for Genomic *Variant* Datasets:**
+
+There are so many options and its evolving quick. It depends on what you want / need to do.
+
+However, here are a few of the core software I recommend:
+
+-   [`vcftools`](https://vcftools.github.io/man_latest.html)
+-   `bcftools`
+-   [plink1.9](https://www.cog-genomics.org/plink/1.9/)(somehow, bewildering called a "beta" version) or [`plink2`](https://www.cog-genomics.org/plink/2.0/) ("alpha").
+-   `TASSEL` and now [`rTASSEL`](https://rtassel.maizegenetics.net/)
+
+------------------------------------------------------------------------
+
+@isik2017 Chapter 9: Exploratory Marker Analysis
+
+# SNP data in R
+
+Our main hands-on goal today will be to see how SNP data can be represented in R. We will learn a few initial tricks about manipulating and visualizing those data.
+
+## Data on Canvas
+
+Download the three datasets (described below) from the "Data" module on Canvas. Place them in the `data/` sub-directory of your R project / repository.
+
+I do not use all of them in my demo. They are for you to explore!
+
+-   **White Lupins** (*Lupinus albus*):
+    -   `WhiteLupins_KHU164_SNPcalls.Ihapmap`: An imputed HapMap (\~340MB) on a collection of \>400 genotypes at \~250K SNPs. These data were generated by low-pass Illumina short-read sequencing of each sample by HudsonAlpha's Khufu team. As part of the genotyping service, missing data are imputed by a proprietary Khufu algorithm.
+    -   `wl_metadata.csv`: This file provides some meta information that will be useful for exploring the data. Genotypes are labelled according to:
+        -   Population-of-origin (one developed at AU and another representing global diversity from the NPGS \[National Plant Germplasm System\]).
+        -   Plant Type (`PlantArch`): Lupins vary in their plant architecture. Some have DETERMINATE flowering from only the apical branch, others are INDETERMINATE.
+-   **Oats** (*Avena sativa*):
+    -   `SunOat2022-3K_01-05.AB.txt`: was generated by USDA-ARS using a 3K SNP chip; file resembles a HapMap file and contains genotypes for 480 oat accessions. Some are named, others are experimental lines. These data are attributed to Drs. Ali Babar (UF) and Steve Harrison (LSU) as part of the [SunGrains Breeding Cooperative](http://www.sungrains.lsu.edu/).
+-   **Cassava** (*Manihot esculenta*):
+    -   `cassava_workshop_data.zip`: You'll want to download *and* unzip this.
+    -   Multiple file types are provided. These data are all publicly available and downloaded from www.cassavabase.org. The entire process is documented in a [2022 Workshop on Genomic Selection](https://wolfemd.github.io/GenomicSelectionManual/index.html).
+    -   The data were generated using a combination of **genotyping-by-sequencing** and a similar reduced-representation marker platform called "DArTseqLD". They have been pre-imputed.
+
+## Install ASRgenomics
+
+Since we've been using `asreml` I thought it useful to include another R package by the same team (VSNi) - `ASRgenomics`.
+
+To install, go this [VSNi page](https://vsni.co.uk/asrgenomics/), and click the "Download" button. Follow the provided instructions. You'll need to fill the web-form to get the download. Install via Rstudio.
+
+-   [User manual](https://asreml.kb.vsni.co.uk/wp-content/uploads/sites/3/ASRgenomics_Manual.pdf)
+-   [Package documentation / manual](https://cran.r-project.org/web/packages/ASRgenomics/refman/ASRgenomics.html)
+
+```{r}
+library(tidyverse)
+# Genomics helpers (focus today)
+library(ASRgenomics)
+```
+
+## Read oat data
+
+First off, we'll read the smallest dataset (the Oat data) into R.
+
+```{r}
+# Be sure to match the file path to your LOCAL machine repository 
+oats<-read_delim(here::here("data/SunOat_3KSNP_data","SunOat2022-3K_01-05.AB.txt"))
+oats %>% dim
+```
+
+```{r}
+oats[1:5,1:10]
+```
+
+This dataset has markers on the **rows** and genotypes of accessions on the **columns**.
+
+## Convert to "dosage"
+
+`ASRgenomics` expects a genotype matrix M with individuals in rows, markers in columns, coded 0/1/2, with rownames = individual IDs and colnames = marker IDs. See `qc.filtering()`, `snp.pca()`, `G.matrix()` docs.
+
+Example format:
+
+| id   | snp1 | snp2 | snp3 | ... |
+|------|-----:|-----:|-----:|-----|
+| G001 |    0 |    1 |   NA | ... |
+| G002 |    2 |    0 |    1 | ... |
+
+This format is known as "allele dosage". The numbers represent a digitization of the genotype values (HOM REF, HET, HOM ALT) that is most useful for statistical genetics. "Allele dosage" assumes only two alleles are present and counts the number of "doses" an individual posesses of one of the two alleles; typically the "alternative" allele is counted. "Alternative" refers to the allele that IS NOT represented in the reference genome sequence. Sometimes, the major or minor allele are counted instead.
+
+Point is, something like 0 = AA, 1 = AT, 2 = TT is the encoding we want.
+
+`ASRgenomics` provides a helper function `snp.recode()` that can convert a HapMap (ATGC) format to dosage.
+
+This works on the White Lupins dataset.
+
+However, it doesn't work on the **oat** dataset I chose as my example. 🤦
+
+Below, I work out a pipeline that manually recodes the data. I recommend you reverse engineer it and know that different data sources pose different manipulation problems.
+
+**NOTE:** If you've got 1000's of individuals and millions of SNP, R might not be the right place to start.
+
+```{r}
+oats_recoded<-oats %>% 
+  # Sort by chrom AND pos
+  arrange(CHROM,POS) %>%
+  # Need an SNP_ID that can be put in the "rownames" and keeps track of chrom+pos+alleles
+  mutate(SNP_ID=paste0(CHROM,"_",POS,":",`#ID`)) %>% 
+  # Noticed some markers (rows) were not associated with a chromosome
+  ## or had different chrom naming than the rest
+  ## to be careful, I'll remove them
+  filter(!CHROM %in% c("UN","ChrUn","1A","2C","4D","5C","6A")) %>% 
+  # Move the SNP_ID column into the rownames position
+  column_to_rownames(var = "SNP_ID") %>% 
+  # Remove meta data columns
+  select(-`#ID`,-CHROM,-POS)
+
+# Use mutate() on all columns
+# Find AA turn it into a 0
+# AB = 1
+# BB = 2
+# Should get NA otherwise
+oats_dosage<-oats_recoded %>% 
+  mutate(across(.cols=everything(), 
+                ~ ifelse(.x=="AA","0",
+                         ifelse(.x=="AB","1",
+                                ifelse(.x=="BB","2",.))))) %>% 
+  mutate(across(.cols=everything(),~as.numeric(.)))
+
+oats_dosage<-t(oats_dosage) %>% 
+  as.matrix()
+
+oats_dosage[1:5,1:5]
+```
+
+```{r}
+table(oats_dosage,useNA = 'ifany')
+```
+
+## Summary stats
+
+Here are some handy calculations you can now do without any package:
+
+```{r}
+# Proportion missing overall
+mean(is.na(oats_dosage))
+```
+
+```{r}
+# The allele frequency (of the counted alleles)
+af<-colMeans(oats_dosage, na.rm = T)/2
+summary(af)
+```
+
+Usually, in statistical genetics applications, we want to know the **minor allele frequency** (MAF).
+
+Why? Statistical reasons. Most datasets have lots of rare alleles. If genotypes at a locus are your predictors in a downstream analysis, you'll not have good power to determine the phenotype-genotype effect for very rare alleles. Imagine you do an experiment to test for a fertilizer effect. You've got 100 plots. A typical design will have 50 plots WITH vs. 50 plots WITHOUT fertilizer. Why? Sampling error and statistical power. If you observe 2 plots WITH fert. and 95 WITHOUT fert. Do you think you have a good estimate? Recall the sensitivity of fixed-effects to imbalanced data. So to is the case with marker genotypes. Stay tuned for more coverage of this concept / problem.
+
+Rare alleles are informative, but unstable for some analyses; hence filtering is needed.This is why QC choices matter downstream.
+
+```{r}
+# Here is a simple function to compute the minor allele frequencies
+getMAF<-function (M){
+  freq <- colMeans(M, na.rm = T)/2
+    maf <- freq
+    maf[which(maf > 0.5)] <- 1 - maf[which(maf > 0.5)]
+    return(maf) 
+}
+maf<-getMAF(oats_dosage)
+summary(maf)
+```
+
+```{r}
+hist(maf)
+```
+
+## QC filtering
+
+ASRgenomics provides `qc.filtering()` to do basic QC filtering and simple imputation.
+
+> "**Imputation** is the process of replacing missing data with substituted values." \~Wikipedia
+
+Imputation is often needed for downstream applications that are only available for 'complete data'.
+
+We'll use "mean-imputation" here. This means simply putting the sample mean in place of any missing data value.
+
+In genomics, there are MUCH better ways to impute. Here's a link to the program [Beagle](https://faculty.washington.edu/browning/beagle/beagle.html) (just an example not an endorsement, @browning2018). Beagle uses what is called a "hidden Markov model" to probabilistically infer missing values; an extremely powerful computational approach for genomics, given genome structure.
+
+```{r}
+# qc.filtering expects 0/1/2 with NAs allowed.
+# Key knobs: call rate, MAF, and imputation approach.
+qc <- qc.filtering(M=oats_dosage,
+                   maf         = 0.01, # keep markers with MAF >= 0.01
+                   marker.call = 0.95, # keep SNPs called in >= 95% of indivs
+                   ind.call    = 0.80, # keep individuals with >= 80% SNPs called
+                   imput       = TRUE) # simple mean imputation
+```
+
+```{r}
+# What did we get back?
+names(qc)
+```
+
+```{r}
+oats_dosage_cleaned<-qc$M.clean
+dim(oats_dosage_cleaned)
+```
+
+```{r}
+mean(is.na(oats_dosage_cleaned))
+```
+
+Several pre-made plots are provided. Pretty convenient.
+
+Oats are self-pollinating small grains. Oat breeders typically (not always) wait until new lines have been inbred to the level of $S_{5:6}$ (\>99% homozygosity) before genotyping.
+
+For that reason, a useful sanity check in this case is the rate of heterozygosity.
+
+```{r}
+# According to the manual, 
+# this is a plot of observed heterozygosity per SNP (original marker matrix).
+qc$plot.heteroz
+```
+
+In fact, **Missingness by individual** may be much more relevant in this case.
+
+Here's a function to do missing-by-individual:
+
+```{r}
+getPropHom<-function (M) {
+    W <- M
+    W[which(W == 2)] <- 0
+    f <- 1 - (rowSums(W)/ncol(W))
+    return(f) 
+}
+```
+
+```{r}
+prop_hom<-getPropHom(oats_dosage_cleaned)
+summary(prop_hom)
+```
+
+```{r}
+hist(prop_hom)
+```
+
+So, this sanity checks us. But there ARE some pretty heterozygous individuals.
+
+```{r}
+prop_hom %>% .[which(.<0.8)]
+```
+
+What do you think could explain this?
+
+------------------------------------------------------------------------
+
+BTW, I've encapsulated several of these useful functions into my own R package, `genomicMateSelectR`.
+
+If you're interested, find it here: https://wolfemd.github.io/genomicMateSelectR/
+
+You can install [genomicMateSelectR package from my GitHub](https://www.github.com/wolfemd/genomicMateSelectR/) with:
+
+```{r, eval=F}
+devtools::install_github("wolfemd/genomicMateSelectR", ref = 'master')
+```
+
+------------------------------------------------------------------------
+
+## PCA to visualize structure
+
+ASRgenomics offers `snp.pca()` for PCA on the marker matrix. But you can also use the core R function `prcomp()`.
+
+**Principal Components Analysis (PCA):** linear dimensionality reduction technique often used in exploratory data analysis, visualization and data preprocessing.
+
+![Principal components are equations that define directions through data that explain a maximal amount of variance. The lines that capture most information about the dataset. The most important PC is always first. The numbers of predictors and PCs is always equal, but PCs are sorted such that the first PC explains the maximal amount of the data (the purple marks) and each subsequent PC explains cumulatively less. Depiction of the line that maximized the variance (avg. squared distance from project points (red dots) to the origin.](images/pca_demo.gif)
+
+Learn PCA:
+
+-   [Data Camp Tutorial on PCA in R](https://www.datacamp.com/tutorial/pca-analysis-r)
+-   [StatQuest with Josh Starmer - PCA on YouTube](https://www.youtube.com/watch?v=FgakZw6K1QQ)
+-   @reich2008 - An early paper reviewing the use of PCA with genetic data
+-   @price2006 - Jumping the gun a bit, but PCA's use to control for population genetic structure in GWAS is first described in this paper.
+
+```{r}
+pca_on_snps <- snp.pca(M = oats_dosage_cleaned,ncp = 15)  
+# 10 PCs for exploration
+names(pca_on_snps)
+```
+
+```{r}
+# PCA Scores
+pca_on_snps$pca.scores %>%head
+```
+
+PCA scores position each individual (oat in this case) in the principal components 'space'. These PCA scores are also called *eigenvector coeffients*. Each PC is also called an *eigenvector* and has an associated *eigenvalue* which corresponds to the amount of multi-variance variability that is explained by that vector. 
+
+```{r}
+pca_on_snps$eigenvalues %>% head
+```
+
+We can use their pre-made plot
+```{r}
+pca_on_snps$plot.scree
+```
+A "scree plot" displays the percent variance explained by each principal component (eigenvector) in order. As you can see, by definition the first one always explains the most.
+
+```{r}
+pca_on_snps$plot.pca
+```
+
+```{r}
+scores <- pca_on_snps$pca.scores
+
+scores <- scores %>%
+  as.data.frame %>% 
+  mutate(GID = rownames(scores))
+
+ggplot(scores, aes(x = PC3, y = PC4)) +
+  geom_point(size = 2, alpha = 0.8) +
+  labs(title = "PCA of SNP matrix", x = "PC3 (9.7%)", y = "PC4 (4.7%)") +
+  theme_bw()
+
+```
+
+**On interpretation:** Each data point is an individual oat genotype. The position of two datapoints in the plot is related to the _genetic similarity_ between the two samples. Without additional information, this information is not immediately translatable into pedigree information, meaning you can't tell whether two samples are siblings, parent-offspring, or any other relatedness level. Often, structures like families will appear as clusters of dots.
+
+`snp.pca` has options to color code and to draw ellipses around groups of related individuals. 
+
+**Hint for the Hands-on:** The White Lupin dataset comes with a metadata file that could be used to group those samples.
+
+**Hint for visualizing the oats:** Sample names often start with a state-of-origin prefix (e.g. "FL0047-J9" is a line from Florida). I wonder if we can identify clusters-by-origin? You'll have to use some text processing (`grep`, `grepl`) to extract state codes from the names. 
+
+```{r}
+rownames(oats_dosage_cleaned)[1:25]
+```
+
+## Marker distribution
+
+One last thing, to get us primed for _mapping_ quantitative trait loci (QTL) along the genome. Let's make a plot of the marker distribution across the physical positions of the genome. Are they evenly distributed, or are there signifcant gaps? If designed properly, a genotyping strategy should evenly sample the whole genome. 
+
+```{r}
+snp_map<-tibble(SNP_ID=colnames(oats_dosage_cleaned)) %>% 
+  separate(SNP_ID,c("ChrPos","SNP_ID"),":") %>% 
+  separate(ChrPos,c("Chr","Pos"),"_") %>% 
+  mutate(Pos=as.numeric(Pos))
+
+snp_map %>% 
+  ggplot(., aes(x = Pos, y = Chr)) +
+  geom_point(size = 0.6, alpha = 0.7) +
+  labs(title = "Physical distribution of SNP markers",
+       x = "Genomic position (bp)",
+       y = "Chromosome") +
+  theme_bw()
+```
+
+
+# Hands-on
+
+Now it's your turn!
+
+1.  Explore the available SNP datasets. Use the examples above, but check out the manual, see what you can do with what you've got. Try to get to go beyond the PCA we demonstrated above. Identify sub-groups in the data (hints given above) and color-code and see if you can distinguish the groups in genetic space using the PCA results. 
+2.  Work on learning to interact with the **shell** (command line). If you need to, install WSL or find another way to get up and running with some of the software mentioned above (e.g. `plink`).

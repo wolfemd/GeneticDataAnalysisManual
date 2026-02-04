@@ -15,13 +15,16 @@ website:
     contents:
       - text: "Home"
         href: index.qmd
-      - section: "Module 1"
+      - section: "Module 1: Phenotypes"
         contents:
           - lessons/1_Quarto.qmd
           - lessons/2_LinearModels.qmd
           - lessons/3_MixedModels.qmd
           - lessons/4_MoreMixedModels.qmd
           - lessons/5_AdvancedMixedModels.qmd
+      - section: "Module 2: Genotypes"
+        contents:
+          - lessons/6_GenoData.qmd
 
 format:
   html:

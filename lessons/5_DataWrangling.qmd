@@ -1,0 +1,133 @@
+---
+title: "Data Wrangling and Exploratory Data Analysis"
+author: "Marnin Wolfe"
+format: html
+execute:
+  error: true
+---
+
+**Previously**: [More Complex Mixed Models](4_MoreMixedModels.qmd)
+## Data
+
+```{r, warning=F, message=F}
+library(tidyverse)
+library(asreml)
+```
+
+```{r}
+alt<-read.csv(here::here("data","19-25CC_ALT_DATA_ALL_2025-08-23.csv"))
+
+# My example data chunk
+# This time expanding to include 2 sites, 2 years
+# Still small, but suits my examples
+# Keep using your own!
+alny_alt<-alt %>% 
+  filter(site %in% c("AL","NY"),
+         year %in% c(24,25))
+
+# Make factors before modeling
+alny_alt<-alny_alt %>% 
+  mutate(entry=as.factor(entry),
+         site.year=as.factor(site.year),
+         site=as.factor(site),
+         # unless you are expecting / modeling a linear trend in year
+         # convert it to factor
+         year=as.factor(year),
+         # explicitly nest values of rep in site.year
+         # review explicit vs. implicit nesting
+         rep=as.factor(paste0(site.year,"-",rep)))
+```
+
+$$ 
+\mathbf R=\sigma_e^2
+\begin{bmatrix}
+\mathbf I_{n_1} & \mathbf 0 & \mathbf 0\\
+\mathbf 0 & \mathbf I_{n_2} & \mathbf 0\\
+\mathbf 0 & \mathbf 0 & \mathbf I_{n_3}
+\end{bmatrix}
+$$
+2. We introduced the idea of heterogeneous errors in our last lesson. This doesn't account for spatial variability within fields.
+
+Code: `residual = ~dsum(~units|Site)` 
+
+$$
+\mathbf R=
+\begin{bmatrix}
+\sigma_{e1}^2\,\mathbf I_{n_1} & \mathbf 0 & \mathbf 0\\
+\mathbf 0 & \sigma_{e2}^2\,\mathbf I_{n_2} & \mathbf 0\\
+\mathbf 0 & \mathbf 0 & \sigma_{e3}^2\,\mathbf I_{n_3}
+\end{bmatrix}
+$$
+
+
+
+# Lesson plan
+
+2.  [**Exploratory Data Analysis**]{.underline}**:** how to manipulate and plot your data, functions, loops and analyzing multiple traits.
+
+
+```{r}
+### Code monstrosity
+### You can also extract BLUPs from the predict() function. They will have the intercept added back (not centered on zero)
+### Question was: why are the standard errors different?
+# predict(asr_heterror,classify = 'entry')$pvals %>% 
+#   left_join(summary(asr_heterror,coef=T)$coef.random %>% 
+#   as.data.frame %>% 
+#   rownames_to_column(var = "entry") %>% 
+#   filter(grepl("^entry_",entry)) %>% 
+#   mutate(entry=gsub("entry_","",entry,fixed = T)) %>% 
+#   rename(stdErr_fromSummary=std.error,
+#          blup_fromSummary=solution) %>% select(-z.ratio)) %>% 
+#   ggplot(.,aes(x=predicted.value,y=blup_fromSummary)) + geom_point()
+```
+
+# Part II: Exploratory data analysis
+
+-   Later, we'll take some time. Practice using R, especially `dplyr` and related `tidyverse` functions to summarize and get to know the dataset.
+
+### Transforming data
+
+`pivot_wider()` `pivot_longer()` `group_by()` + `nest()`
+
+### Analyzing multiple traits
+
+`purrr()`
+
+Functions?
+
+### Summary statistics
+
+### Trait distributions
+
+## Summarize the data
+
+-   Find a *balanced* chunk of the data.
+-   Balance is going to mean a lack of missing data for most or all traits.
+-   I suggest taking out 2-4 site.years worth.
+
+```{r, eval=F}
+alt %>% 
+  filter(site=="AL") %>% 
+  group_by(site.year) %>% 
+  summarize(PropMissingBiomass=length(which(is.na(biomass.1)))/n(),
+            Nentries=length(unique(entry)),
+            Nobs=n())
+```
+
+```{r, eval=F}
+alt$biomass.1 %>% is.na
+alt$biomass.1 %>% is.na %>% which
+length(which(is.na(alt$biomass.1)))/nrow(alt)
+```
+
+
+
+# Genetic Analysis with LMMs
+
+## Multi-trial
+
+## GxE
+
+## Two-stage
+
+# Next

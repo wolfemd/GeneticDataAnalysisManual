@@ -22,12 +22,20 @@ This course covers statistical and computational foundations for analyzing genet
 Assistant Professor, Quantitative Genetics\
 Department of Crop, Soil & Environmental Sciences, Auburn University
 
-### Lessons
+### Teaching Assistance
+
+**Dr. Cynthia Aghogho**\
+Post-doctoral Associate, Wolfe Lab\
+Department of Crop, Soil & Environmental Sciences, Auburn University
+
+### Module 1: Phenotypes
 
 -   [Lesson 1 - Reproducible data projects](lessons/1_Quarto.html) - `quarto` / Markdown
 -   [Lesson 2 - Linear Models with Matrices](lessons/2_LinearModels.html) - `lm`
 -   [Lesson 3 - Intro to Mixed Models](lessons/3_MixedModels.html) - `lmer`
 -   [Lesson 4 - More Complex Mixed Models](lessons/4_MoreMixedModels.html) - `asreml`
--   [Lesson 5 - Multivariate and Multi-stage Mixed Models](lessons/5_AdvancedMixedModels.html) - `asreml`
+-   [Lesson 5 - Spatial, Multi-trait and Multi-stage Models](lessons/5_AdvancedMixedModels.html) - `asreml`
 
+### Module 2: Genotypes
 
+-   [Lesson 6 - Genomic Data Exploration](lessons/6_GenoData.html) - `ASRgenomics` 

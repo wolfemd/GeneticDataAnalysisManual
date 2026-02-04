@@ -1,5 +1,5 @@
 ---
-title: "Multivariate and Multi-stage Mixed Models"
+title: "Spatial, Multi-trait and Multi-stage Models"
 author: "Marnin Wolfe"
 format: 
   html:
@@ -838,3 +838,57 @@ As before, DATA OPTIONS:
 3. For the very bold: try analyzing the entire dataset.
 
 
+# In-class Examples
+
+
+
+```{r}
+al_alt<-alt %>% 
+  filter(site %in% c("AL"),
+         year %in% c(24,25))
+al_long<-al_alt %>%
+  pivot_longer(cols = c(biomass.1, spring.vigor.av),
+               names_to  = "Trait",
+               values_to = "value",values_drop_na = F) %>%
+  mutate(Trait = factor(Trait),
+         entry=as.factor(entry),
+         site.year=as.factor(site.year),
+         site=as.factor(site),
+         # unless you are expecting / modeling a linear trend in year
+         # convert it to factor
+         year=as.factor(year),
+         # explicitly nest values of rep in site.year
+         # review explicit vs. implicit nesting
+         rep=as.factor(paste0(site.year,"-",rep)),
+         row=as.factor(row),
+         range=as.factor(range)) %>% 
+   arrange(site.year, range, row, Trait)
+
+```
+
+```{r, warning=F, message=F, eval=F}
+al_long_mod <- asreml(
+  fixed    = value ~ Trait:site.year,
+  random   = ~ us(Trait):entry + diag(Trait):rep,
+#  residual = ~ dsum(~diag(trait) | site.year),
+  data     = al_long,
+  maxiter  = 90,
+  na.action = na.method(y="include", x="include"))
+```
+
+Modeling this way isn't going so well.
+
+With the residual term specified, I received a warning that there were singularities and the model could not be solved.
+
+Remove the residual term and we get the model to fit... but it says NOT CONVERGED.
+
+Still, we are left with an output I can show you as an example:
+
+```{r, eval=F}
+summary(alny_long_mod)$varcomp
+```
+
+
+# Next
+
+[Lesson 6 - Genomic Data Exploration](6_GenoData.qmd) - `ASRgenomics` 

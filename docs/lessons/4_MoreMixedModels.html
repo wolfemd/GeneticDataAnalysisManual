@@ -3896,7 +3896,7 @@ vertical-align: -.125em;
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../lessons/1_Quarto.html">Module 1</a></li><li class="breadcrumb-item"><a href="../lessons/4_MoreMixedModels.html">More Complex Mixed Models</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../lessons/1_Quarto.html">Module 1: Phenotypes</a></li><li class="breadcrumb-item"><a href="../lessons/4_MoreMixedModels.html">More Complex Mixed Models</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -3929,7 +3929,7 @@ vertical-align: -.125em;
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Module 1</span></a>
+ <span class="menu-text">Module 1: Phenotypes</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -3962,7 +3962,24 @@ vertical-align: -.125em;
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../lessons/5_AdvancedMixedModels.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Multivariate and Multi-stage Mixed Models</span></a>
+ <span class="menu-text">Spatial, Multi-trait and Multi-stage Models</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Module 2: Genotypes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lessons/6_GenoData.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Genomic Data Exploration</span></a>
   </div>
 </li>
       </ul>
@@ -4015,7 +4032,7 @@ vertical-align: -.125em;
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../lessons/1_Quarto.html">Module 1</a></li><li class="breadcrumb-item"><a href="../lessons/4_MoreMixedModels.html">More Complex Mixed Models</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../lessons/1_Quarto.html">Module 1: Phenotypes</a></li><li class="breadcrumb-item"><a href="../lessons/4_MoreMixedModels.html">More Complex Mixed Models</a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title">More Complex Mixed Models</h1>
 </div>
@@ -4270,7 +4287,7 @@ LRT = -2 \times ln
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(asreml)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Online License checked out Mon Feb  2 11:22:09 2026</code></pre>
+<pre><code>Online License checked out Wed Feb  4 12:10:40 2026</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -4334,13 +4351,13 @@ site.yr25AL -0.694</code></pre>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">random =</span> <span class="sc">~</span>entry <span class="sc">+</span> rep <span class="sc">+</span> site.year<span class="sc">:</span>entry,</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">data =</span> al_alt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/02/2026 11:22:09
+<pre><code>ASReml Version 4.2 04/02/2026 12:10:40
           LogLik        Sigma2     DF     wall
- 1     -366.2039      175.6047    114   11:22:09
- 2     -365.4699      164.5684    114   11:22:09
- 3     -364.8944      145.4173    114   11:22:09
- 4     -364.8831      143.0244    114   11:22:09
- 5     -364.8830      142.9635    114   11:22:09</code></pre>
+ 1     -366.2039      175.6047    114   12:10:40
+ 2     -365.4699      164.5684    114   12:10:40
+ 3     -364.8944      145.4173    114   12:10:40
+ 4     -364.8831      143.0244    114   12:10:40
+ 5     -364.8830      142.9635    114   12:10:40</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(asr_mm)<span class="sc">$</span>varcomp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -4419,13 +4436,13 @@ entry_19NCCCLH     -0.3611015  3.718116 -0.09711949</code></pre>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>                      <span class="at">random =</span> <span class="sc">~</span>rep <span class="sc">+</span> site.year<span class="sc">:</span>entry,</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">data =</span> al_alt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/02/2026 11:22:10
+<pre><code>ASReml Version 4.2 04/02/2026 12:10:41
           LogLik        Sigma2     DF     wall
- 1     -367.3448      192.4790    114   11:22:10
- 2     -366.0755      174.8798    114   11:22:10
- 3     -365.2521      156.9297    114   11:22:10
- 4     -365.0124      143.9875    114   11:22:10
- 5     -365.0110      142.9698    114   11:22:10</code></pre>
+ 1     -367.3448      192.4790    114   12:10:41
+ 2     -366.0755      174.8798    114   12:10:41
+ 3     -365.2521      156.9297    114   12:10:41
+ 4     -365.0124      143.9875    114   12:10:41
+ 5     -365.0110      142.9698    114   12:10:41</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lrt</span>(asr_mm,asr_nullentry)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -4466,20 +4483,20 @@ Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">residual =</span> <span class="sc">~</span><span class="fu">dsum</span>(<span class="sc">~</span>units<span class="sc">|</span>site.year),</span>
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> al_alt <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(site.year,X))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/02/2026 11:22:10
+<pre><code>ASReml Version 4.2 04/02/2026 12:10:41
           LogLik        Sigma2     DF     wall
- 1     -371.5225           1.0    114   11:22:10
- 2     -367.8455           1.0    114   11:22:10
- 3     -364.3065           1.0    114   11:22:10
- 4     -362.4049           1.0    114   11:22:10
- 5     -362.2450           1.0    114   11:22:10
- 6     -362.2319           1.0    114   11:22:10
- 7     -362.2270           1.0    114   11:22:10
- 8     -362.2242           1.0    114   11:22:10
- 9     -362.2221           1.0    114   11:22:10
-10     -362.2202           1.0    114   11:22:10  (  1 restrained)
-11     -362.2197           1.0    114   11:22:10  (  1 restrained)
-12     -362.2197           1.0    114   11:22:10  (  1 restrained)</code></pre>
+ 1     -371.5225           1.0    114   12:10:41
+ 2     -367.8455           1.0    114   12:10:41
+ 3     -364.3065           1.0    114   12:10:41
+ 4     -362.4049           1.0    114   12:10:41
+ 5     -362.2450           1.0    114   12:10:41
+ 6     -362.2319           1.0    114   12:10:41
+ 7     -362.2270           1.0    114   12:10:41
+ 8     -362.2242           1.0    114   12:10:41
+ 9     -362.2221           1.0    114   12:10:41
+10     -362.2202           1.0    114   12:10:41  (  1 restrained)
+11     -362.2197           1.0    114   12:10:41  (  1 restrained)
+12     -362.2197           1.0    114   12:10:41  (  1 restrained)</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -4577,21 +4594,21 @@ attr(,&quot;parameters&quot;)
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">data =</span> al_alt <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(site.year,X), </span>
 <span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">maxit=</span><span class="dv">90</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/02/2026 11:22:10
+<pre><code>ASReml Version 4.2 04/02/2026 12:10:42
           LogLik        Sigma2     DF     wall
- 1     -376.5979           1.0    114   11:22:10
- 2     -371.1740           1.0    114   11:22:10
- 3     -365.8315           1.0    114   11:22:10
- 4     -363.1212           1.0    114   11:22:10
- 5     -362.4069           1.0    114   11:22:10
- 6     -362.3648           1.0    114   11:22:10
- 7     -362.3575           1.0    114   11:22:10
- 8     -362.3539           1.0    114   11:22:10
- 9     -362.3515           1.0    114   11:22:10
-10     -362.3495           1.0    114   11:22:10  (  1 restrained)
-11     -362.3482           1.0    114   11:22:10  (  1 restrained)
-12     -362.3481           1.0    114   11:22:10  (  1 restrained)
-13     -362.3481           1.0    114   11:22:10  (  1 restrained)</code></pre>
+ 1     -376.5979           1.0    114   12:10:42
+ 2     -371.1740           1.0    114   12:10:42
+ 3     -365.8315           1.0    114   12:10:42
+ 4     -363.1212           1.0    114   12:10:42
+ 5     -362.4069           1.0    114   12:10:42
+ 6     -362.3648           1.0    114   12:10:42
+ 7     -362.3575           1.0    114   12:10:42
+ 8     -362.3539           1.0    114   12:10:42
+ 9     -362.3515           1.0    114   12:10:42
+10     -362.3495           1.0    114   12:10:42  (  1 restrained)
+11     -362.3482           1.0    114   12:10:42  (  1 restrained)
+12     -362.3481           1.0    114   12:10:42  (  1 restrained)
+13     -362.3481           1.0    114   12:10:42  (  1 restrained)</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -4622,17 +4639,17 @@ attr(,&quot;parameters&quot;)
 <span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">data =</span> al_alt <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(site.year,X), </span>
 <span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">maxit=</span><span class="dv">90</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/02/2026 11:22:11
+<pre><code>ASReml Version 4.2 04/02/2026 12:10:42
           LogLik        Sigma2     DF     wall
- 1     -376.8922           1.0    114   11:22:11
- 2     -372.0801           1.0    114   11:22:11
- 3     -367.5884           1.0    114   11:22:11
- 4     -365.4995           1.0    114   11:22:11
- 5     -364.8730           1.0    114   11:22:11
- 6     -364.7547           1.0    114   11:22:11  (  1 restrained)
- 7     -364.7217           1.0    114   11:22:11  (  1 restrained)
- 8     -364.7161           1.0    114   11:22:11  (  1 restrained)
- 9     -364.7154           1.0    114   11:22:11  (  1 restrained)</code></pre>
+ 1     -376.8922           1.0    114   12:10:42
+ 2     -372.0801           1.0    114   12:10:42
+ 3     -367.5884           1.0    114   12:10:42
+ 4     -365.4995           1.0    114   12:10:42
+ 5     -364.8730           1.0    114   12:10:42
+ 6     -364.7547           1.0    114   12:10:42  (  1 restrained)
+ 7     -364.7217           1.0    114   12:10:42  (  1 restrained)
+ 8     -364.7161           1.0    114   12:10:42  (  1 restrained)
+ 9     -364.7154           1.0    114   12:10:42  (  1 restrained)</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lrt</span>(asr_heterror_nullgxe,asr_heterror)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -4798,16 +4815,16 @@ H^2 = \frac{\sigma^2_g}{\sigma^2_g + \sigma^2_{g\times yr} + \frac{\bar{\sigma^2
 <span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">random =</span> <span class="sc">~</span>entry<span class="sc">+</span>site,</span>
 <span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">data =</span> alt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/02/2026 11:22:11
+<pre><code>ASReml Version 4.2 04/02/2026 12:10:42
           LogLik        Sigma2     DF     wall
- 1     -8594.235      656.8722   2281   11:22:11
- 2     -8579.812      651.3873   2281   11:22:11
- 3     -8565.567      644.8561   2281   11:22:11
- 4     -8556.267      639.0842   2281   11:22:11
- 5     -8551.291      634.9520   2281   11:22:11
- 6     -8549.816      632.9095   2281   11:22:11
- 7     -8549.568      632.0888   2281   11:22:11
- 8     -8549.556      631.8948   2281   11:22:11</code></pre>
+ 1     -8594.235      656.8722   2281   12:10:42
+ 2     -8579.812      651.3873   2281   12:10:42
+ 3     -8565.567      644.8561   2281   12:10:42
+ 4     -8556.267      639.0842   2281   12:10:42
+ 5     -8551.291      634.9520   2281   12:10:42
+ 6     -8549.816      632.9095   2281   12:10:42
+ 7     -8549.568      632.0888   2281   12:10:42
+ 8     -8549.556      631.8948   2281   12:10:42</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(alt<span class="sc">$</span>biomass<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -4851,16 +4868,16 @@ attr(,&quot;class&quot;)
 <span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">random =</span> <span class="sc">~</span>site,</span>
 <span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">data =</span> alt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/02/2026 11:22:11
+<pre><code>ASReml Version 4.2 04/02/2026 12:10:42
           LogLik        Sigma2     DF     wall
- 1     -8465.571      663.1957   2232   11:22:11
- 2     -8453.453      655.1807   2232   11:22:11
- 3     -8440.260      646.1570   2232   11:22:11
- 4     -8431.173      639.3745   2232   11:22:11
- 5     -8426.274      634.8759   2232   11:22:11
- 6     -8424.826      632.7771   2232   11:22:11
- 7     -8424.586      631.9416   2232   11:22:11
- 8     -8424.574      631.7453   2232   11:22:11</code></pre>
+ 1     -8465.571      663.1957   2232   12:10:42
+ 2     -8453.453      655.1807   2232   12:10:42
+ 3     -8440.260      646.1570   2232   12:10:42
+ 4     -8431.173      639.3745   2232   12:10:42
+ 5     -8426.274      634.8759   2232   12:10:42
+ 6     -8424.826      632.7771   2232   12:10:42
+ 7     -8424.586      631.9416   2232   12:10:42
+ 8     -8424.574      631.7453   2232   12:10:42</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(alt_fixfit)<span class="sc">$</span>fixed <span class="sc">%&gt;%</span> head</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -4878,16 +4895,16 @@ entry_18NCCCES      6.712705</code></pre>
 <span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">random =</span> <span class="sc">~</span>site,</span>
 <span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">data =</span> alt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/02/2026 11:22:11
+<pre><code>ASReml Version 4.2 04/02/2026 12:10:42
           LogLik        Sigma2     DF     wall
- 1     -8465.571      663.1957   2232   11:22:11
- 2     -8453.453      655.1807   2232   11:22:11
- 3     -8440.260      646.1570   2232   11:22:11
- 4     -8431.173      639.3745   2232   11:22:11
- 5     -8426.274      634.8759   2232   11:22:11
- 6     -8424.826      632.7771   2232   11:22:11
- 7     -8424.586      631.9416   2232   11:22:11
- 8     -8424.574      631.7453   2232   11:22:11</code></pre>
+ 1     -8465.571      663.1957   2232   12:10:42
+ 2     -8453.453      655.1807   2232   12:10:42
+ 3     -8440.260      646.1570   2232   12:10:42
+ 4     -8431.173      639.3745   2232   12:10:42
+ 5     -8426.274      634.8759   2232   12:10:42
+ 6     -8424.826      632.7771   2232   12:10:42
+ 7     -8424.586      631.9416   2232   12:10:42
+ 8     -8424.574      631.7453   2232   12:10:42</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(alt_fixfit1)<span class="sc">$</span>fixed <span class="sc">%&gt;%</span> head</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">

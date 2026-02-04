@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Marnin Wolfe">
+
+<title>Intro to Mixed Models – Genetic Data Analysis (Spring 2026)</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-e8663e460cc11f9ab76aade26c934c4c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+
+</head>
+
+<body class="nav-sidebar docked quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../lessons/1_Quarto.html">Module 1: Phenotypes</a></li><li class="breadcrumb-item"><a href="../lessons/3_MixedModels.html">Intro to Mixed Models</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Module 1: Phenotypes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lessons/1_Quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reproducible Projects in R</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lessons/2_LinearModels.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Linear Models with Matrices</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lessons/3_MixedModels.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Intro to Mixed Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lessons/4_MoreMixedModels.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">More Complex Mixed Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lessons/5_AdvancedMixedModels.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Spatial, Multi-trait and Multi-stage Models</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Module 2: Genotypes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lessons/6_GenoData.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Genomic Data Exploration</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#lesson-plan" id="toc-lesson-plan" class="nav-link active" data-scroll-target="#lesson-plan">Lesson plan</a></li>
+  <li><a href="#load-data-and-subset" id="toc-load-data-and-subset" class="nav-link" data-scroll-target="#load-data-and-subset">Load data and Subset</a></li>
+  <li><a href="#exploratory-plots" id="toc-exploratory-plots" class="nav-link" data-scroll-target="#exploratory-plots">Exploratory plots</a></li>
+  <li><a href="#propose-a-model" id="toc-propose-a-model" class="nav-link" data-scroll-target="#propose-a-model">Propose a model</a></li>
+  <li><a href="#fixed-effects" id="toc-fixed-effects" class="nav-link" data-scroll-target="#fixed-effects">Fixed-effects</a></li>
+  <li><a href="#mixed-models" id="toc-mixed-models" class="nav-link" data-scroll-target="#mixed-models">Mixed-models</a>
+  <ul>
+  <li><a href="#fixed-vs.-random" id="toc-fixed-vs.-random" class="nav-link" data-scroll-target="#fixed-vs.-random">Fixed vs.&nbsp;Random</a></li>
+  <li><a href="#propose-a-mixed-model" id="toc-propose-a-mixed-model" class="nav-link" data-scroll-target="#propose-a-mixed-model">Propose a mixed-model</a></li>
+  <li><a href="#hypothesis-testing" id="toc-hypothesis-testing" class="nav-link" data-scroll-target="#hypothesis-testing">Hypothesis testing</a></li>
+  <li><a href="#blup-vs.-blue" id="toc-blup-vs.-blue" class="nav-link" data-scroll-target="#blup-vs.-blue">BLUP vs.&nbsp;BLUE</a></li>
+  </ul></li>
+  <li><a href="#blups-are-shrinkage-estimates" id="toc-blups-are-shrinkage-estimates" class="nav-link" data-scroll-target="#blups-are-shrinkage-estimates">BLUPs are shrinkage estimates</a></li>
+  <li><a href="#key-points" id="toc-key-points" class="nav-link" data-scroll-target="#key-points">Key points</a></li>
+  <li><a href="#hands-on" id="toc-hands-on" class="nav-link" data-scroll-target="#hands-on">Hands-on</a></li>
+  <li><a href="#next" id="toc-next" class="nav-link" data-scroll-target="#next">Next</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../lessons/1_Quarto.html">Module 1: Phenotypes</a></li><li class="breadcrumb-item"><a href="../lessons/3_MixedModels.html">Intro to Mixed Models</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Intro to Mixed Models</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Marnin Wolfe </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><strong>Previously</strong>: <a href="../lessons/2_LinearModels.html">Reproducible Projects in R</a></p>
+<section id="lesson-plan" class="level1">
+<h1>Lesson plan</h1>
+<p>Our goal now is to</p>
+<ol type="1">
+<li>Demonstrate the difference between fixed and mixed-effects models.</li>
+<li>Learn simple mixed-modelling in R using <code>lmer()</code></li>
+<li>Hypothesis testing of variance components</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="load-data-and-subset" class="level1">
+<h1>Load data and Subset</h1>
+<p>Use the same data chunk you chose in the previous lesson.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>alt<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"19-25CC_ALT_DATA_ALL_2025-08-23.csv"</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>al_alt<span class="ot">&lt;-</span>alt <span class="sc">%&gt;%</span> </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(site<span class="sc">==</span><span class="st">"AL"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="exploratory-plots" class="level1">
+<h1>Exploratory plots</h1>
+<p>Let’s make a few plots. To help build our model.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>al_alt <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">year=</span><span class="fu">as.character</span>(year)) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>year,<span class="at">y=</span>biomass<span class="fl">.1</span>, <span class="at">fill=</span>year)) <span class="sc">+</span> <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Rep variance"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>al_alt <span class="sc">%&gt;%</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rep=</span><span class="fu">paste0</span>(site.year,<span class="st">"-"</span>,rep)) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>site.year,<span class="at">y=</span>biomass<span class="fl">.1</span>,<span class="at">fill=</span>rep)) <span class="sc">+</span> <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Rep variance"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a vector with the names of entries ordered by their descending</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="do">## mean biomass</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>order_entries_by_meanbiomass<span class="ot">&lt;-</span>al_alt <span class="sc">%&gt;%</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(entry) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanBiomass=</span><span class="fu">mean</span>(biomass<span class="fl">.1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(meanBiomass)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  .<span class="sc">$</span>entry</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>al_alt <span class="sc">%&gt;%</span> </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Order the factor levels of entry according to biomass-order </span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">entry=</span><span class="fu">factor</span>(entry,<span class="at">levels=</span>order_entries_by_meanbiomass)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>entry,<span class="at">y=</span>biomass<span class="fl">.1</span>,<span class="at">fill=</span>entry)) <span class="sc">+</span> </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span> </span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">'none'</span>, </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">90</span>)) <span class="sc">+</span> </span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Distirbution of performance by Entry"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="propose-a-model" class="level1">
+<h1>Propose a model</h1>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>+</mo><mi>R</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>G</mi><mi>k</mi></msub><mo>+</mo><mi>G</mi><msub><mi>Y</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>+</mo><msub><mi>e</mi><mrow><mi>i</mi><mi>j</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{ij} = Y_i + R(Y)_{ij} + G_k + GY_{ik} + e_{ijk}</annotation></semantics></math></p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math> grand mean, intercept</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math> effect of year <em>i</em></li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">R(Y)_{ij}</annotation></semantics></math> complete block, or rep effect <em>k</em>, nested within year <em>i</em></li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>G</mi><mi>k</mi></msub><annotation encoding="application/x-tex">G_k</annotation></semantics></math> effect of genotype (i.e.&nbsp;entry, aka variety of crimson clover)</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><msub><mi>Y</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">GY_{ik}</annotation></semantics></math> interaction effect, genotype-by-year</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>i</mi><mi>j</mi><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">e_{ijk}</annotation></semantics></math> random error, distributed as <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>i</mi><mi>j</mi><mi>k</mi></mrow></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">e_{ijk} \sim N(0,I\sigma^2_e)</annotation></semantics></math></li>
+</ul>
+</section>
+<section id="fixed-effects" class="level1">
+<h1>Fixed-effects</h1>
+<p>We need to format the data to model properly</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>al_alt<span class="ot">&lt;-</span>al_alt <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">entry=</span><span class="fu">as.factor</span>(entry),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">site.year=</span><span class="fu">as.factor</span>(site.year),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>         <span class="co"># explicitly nest values of rep in site.year</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>         <span class="co"># review explicit vs. implicit nesting</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">rep=</span><span class="fu">as.factor</span>(<span class="fu">paste0</span>(site.year,<span class="st">"-"</span>,rep)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fitting the model</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">=</span> <span class="fu">lm</span>(biomass<span class="fl">.1</span> <span class="sc">~</span>site.year <span class="sc">+</span> rep <span class="sc">+</span> entry <span class="sc">+</span> entry<span class="sc">:</span>site.year, </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">data=</span>al_alt)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m0) <span class="co"># fit the model</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: biomass.1
+                Df  Sum Sq Mean Sq F value    Pr(&gt;F)    
+site.year        1  4055.3  4055.3 28.3819 1.833e-06 ***
+rep              2   621.0   310.5  2.1731  0.123333    
+entry           34 11143.9   327.8  2.2939  0.002852 ** 
+site.year:entry 22  5389.6   245.0  1.7146  0.053792 .  
+Residuals       56  8001.5   142.9                      
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check model assumptions</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(m0, <span class="at">which =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-8-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(<span class="fu">residuals</span>(m0))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-8-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Let’s make a quick comparison of taking raw group-means to using the estimated marginal means (“lsmeans”).</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>entry_means<span class="ot">&lt;-</span>al_alt <span class="sc">%&gt;%</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(entry) <span class="sc">%&gt;%</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">mean=</span><span class="fu">mean</span>(biomass<span class="fl">.1</span>))</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(entry_means)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 2
+  entry         mean
+  &lt;fct&gt;        &lt;dbl&gt;
+1 17MDCCH       49.1
+2 17MDCCS       56.3
+3 17RMCCL       34.0
+4 18NCCCEGiant  50.2
+5 19MDCC        53.0
+6 19NCCCLH      42.5</code></pre>
+</div>
+</div>
+<p>Try to extract the estimated marginal means (aka the least-square means) from the fixed-model.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(emmeans)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'emmeans' was built under R version 4.5.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Welcome to emmeans.
+Caution: You lose important information if you filter this package's results.
+See '? untidy'</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>emmean<span class="ot">&lt;-</span><span class="fu">emmeans</span>(m0,<span class="st">"entry"</span>) <span class="sc">%&gt;%</span> summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: A nesting structure was detected in the fitted model:
+    rep %in% site.year</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: Results may be misleading due to involvement in interactions</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>adj_means<span class="ot">&lt;-</span>entry_means <span class="sc">%&gt;%</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(emmean <span class="sc">%&gt;%</span> <span class="fu">select</span>(entry,emmean))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(entry)`</code></pre>
+</div>
+</div>
+<p>In the example I chose above, not all levels (entries) of the <code>emmean</code> were estimable.</p>
+<p>Why not!?</p>
+<p>Below, I make some summaries. Look at the counts of number of observations per entry below.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>adj_means <span class="sc">%&gt;%</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Count number obs per entry</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(al_alt <span class="sc">%&gt;%</span> <span class="fu">count</span>(entry,<span class="at">name =</span> <span class="st">"Nobs"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Count number of years per entry</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(al_alt <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(entry,year) <span class="sc">%&gt;%</span> <span class="fu">count</span>(entry, <span class="at">name =</span> <span class="st">"Nyears"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(entry)`
+Joining with `by = join_by(entry)`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 35 × 5
+   entry             mean emmean  Nobs Nyears
+   &lt;fct&gt;            &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;
+ 1 17MDCCH           49.1   49.1     4      2
+ 2 17MDCCS           56.3   56.3     4      2
+ 3 17RMCCL           34.0   NA       2      1
+ 4 18NCCCEGiant      50.2   NA       2      1
+ 5 19MDCC            53.0   53.0     4      2
+ 6 19NCCCLH          42.5   42.5     4      2
+ 7 19NCCCLS          44.2   44.2     4      2
+ 8 2020 Early Giant  45.6   NA       2      1
+ 9 20NCCCE           53.1   53.1     4      2
+10 20NCCCLH          61.3   NA       2      1
+# ℹ 25 more rows</code></pre>
+</div>
+</div>
+<p>The not-estimated lines were only observed in one year (2 plots instead of 4).</p>
+<p>Rather than cherry pick a different data chunk, it highlights already the advantage of a mixed-model.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>adj_means <span class="sc">%&gt;%</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>mean,<span class="at">y=</span>emmean)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_abline</span>(<span class="at">slope=</span><span class="dv">1</span>,<span class="at">color=</span><span class="st">'darkred'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 12 rows containing missing values or values outside the scale range
+(`geom_point()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>So far, you can see no difference between a raw mean and the est. marg. means (fixed-effects estimate).</p>
+<p>That with the caveat that not all fixed-effects levels were estimable b/c of the data structure.</p>
+</section>
+<section id="mixed-models" class="level1">
+<h1>Mixed-models</h1>
+<p>Now let’s introduce mixed-models, which include both fixed and random effects.</p>
+<section id="fixed-vs.-random" class="level2">
+<h2 class="anchored" data-anchor-id="fixed-vs.-random">Fixed vs.&nbsp;Random</h2>
+<p>Recall that:</p>
+<ul>
+<li><strong>Fixed-effects:</strong> A fixed effect is a parameter that does not vary.</li>
+<li><strong>Random-effects:</strong> An effect whose value depends on “random” events</li>
+</ul>
+<p><strong>What is your objective?</strong></p>
+<ul>
+<li><p>Fixed - compare specific levels of factor</p></li>
+<li><p>Rand - conclusions drawn from larger universe of interest</p></li>
+</ul>
+<p><strong>What units are you sampling?</strong></p>
+<ul>
+<li><p>Fixed - investigator chosen treatment levels</p></li>
+<li><p>Rand - random sampled levels</p></li>
+</ul>
+<p><strong>Statistical purpose</strong>?&nbsp;</p>
+<ul>
+<li><p>Fixed - hypothesis tests on the mean - <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><msub><mi>τ</mi><mn>1</mn></msub><mo>=</mo><msub><mi>τ</mi><mn>2</mn></msub><mo>=</mo><msub><mi>τ</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">H_0: \tau_1 = \tau_2 = \tau_n</annotation></semantics></math></p></li>
+<li><p>Rand - tests on the variance components&nbsp;- <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><msubsup><mi>σ</mi><mi>τ</mi><mn>2</mn></msubsup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">H_0: \sigma^2_{\tau} = 0</annotation></semantics></math></p></li>
+</ul>
+<p><strong>Complex data model?</strong></p>
+<ul>
+<li>Rand - p&gt;&gt;n (more parameters, p than observations, n)<br>
+(e.g.&nbsp;genome-wide prediction)</li>
+</ul>
+<!-- -->
+<ul>
+<li><p>Data contain hierarchically related and non-independent terms&nbsp;</p>
+<ul>
+<li><p>Genotypes are related</p></li>
+<li><p>Plots within Trials within Years within Sites</p></li>
+<li><p>Correlated residuals</p></li>
+</ul></li>
+<li><p>Uneven replications / unbalanced data</p></li>
+</ul>
+</section>
+<section id="propose-a-mixed-model" class="level2">
+<h2 class="anchored" data-anchor-id="propose-a-mixed-model">Propose a mixed-model</h2>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>+</mo><mi>R</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>G</mi><mi>k</mi></msub><mo>+</mo><mi>G</mi><msub><mi>Y</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>+</mo><msub><mi>e</mi><mrow><mi>i</mi><mi>j</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{ij} = Y_i + R(Y)_{ij} + G_k + GY_{ik} + e_{ijk}</annotation></semantics></math></p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math> grand mean, intercept</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math> effect of year <em>i</em></li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><msubsup><mi>σ</mi><mi>r</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(Y)_{ij} \sim N(0,I\sigma^2_r)</annotation></semantics></math> random-effect for blocks <em>k</em> nested within years <em>i</em>.</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mi>k</mi></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><msubsup><mi>σ</mi><mi>g</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">G_k \sim N(0,I\sigma^2_g)</annotation></semantics></math> effect of genotype (i.e.&nbsp;entry, aka variety of crimson clover)</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><msub><mi>Y</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><msubsup><mi>σ</mi><mrow><mi>g</mi><mo>×</mo><mi>y</mi></mrow><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">GY_{ik} \sim N(0,I\sigma^2_{g \times y})</annotation></semantics></math> interaction effect, genotype-by-year</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>i</mi><mi>j</mi><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">e_{ijk}</annotation></semantics></math> random error, distributed as <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>i</mi><mi>j</mi><mi>k</mi></mrow></msub><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">e_{ijk} \sim N(0,I\sigma^2_e)</annotation></semantics></math></li>
+</ul>
+<p>NOTE that:</p>
+<ol type="1">
+<li>Random terms have an distribution with an associated mean and variance component</li>
+<li>Interactions even between fixed and random are random</li>
+</ol>
+<p>We will call upon the <code>lme4</code> package to fit our first mixed-models.</p>
+<p><code>lme4</code>’s flagship function <code>lmer()</code> can fit mixed-models where the variance parameters are I.I.D. (independent and identically distributed).</p>
+<p>In the next lesson, we’ll learn <code>asreml</code> and/or <code>sommer</code>, which can handle more complex structures of the <strong>V</strong> matrix.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>mm<span class="ot">&lt;-</span><span class="fu">lmer</span>(biomass<span class="fl">.1</span> <span class="sc">~</span>site.year <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>rep) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>entry) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>entry<span class="sc">:</span>site.year),</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">data =</span> al_alt)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML ['lmerMod']
+Formula: 
+biomass.1 ~ site.year + (1 | rep) + (1 | entry) + (1 | entry:site.year)
+   Data: al_alt
+
+REML criterion at convergence: 939.3
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-2.18776 -0.60236  0.00158  0.57017  2.76647 
+
+Random effects:
+ Groups          Name        Variance Std.Dev.
+ entry:site.year (Intercept)  58.935   7.677  
+ entry           (Intercept)  17.335   4.163  
+ rep             (Intercept)   5.807   2.410  
+ Residual                    142.962  11.957  
+Number of obs: 116, groups:  entry:site.year, 58; entry, 35; rep, 4
+
+Fixed effects:
+              Estimate Std. Error t value
+(Intercept)     50.027      2.858  17.506
+site.year25AL  -11.592      3.878  -2.989
+
+Correlation of Fixed Effects:
+            (Intr)
+site.yr25AL -0.694</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(<span class="fu">residuals</span>(mm))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>I’d argue this looks a bit heteroskedastic. Might consider log-transform. Might not.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># log_mm&lt;-lmer(logBiomass ~site.year + (1|rep) + (1|entry) + (1|entry:site.year),</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co">#          data = al_alt %&gt;% mutate(logBiomass=log(biomass.1)))</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(log_mm)</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co"># plot(mm)</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="co"># hist(residuals(mm))</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="hypothesis-testing" class="level2">
+<h2 class="anchored" data-anchor-id="hypothesis-testing">Hypothesis testing</h2>
+<ul>
+<li><p>This may not have come up in lecture.</p></li>
+<li><p>We may want to test whether our variance estimates are different from zero, beyond a reasonable doubt. <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><msubsup><mi>σ</mi><mi>g</mi><mn>2</mn></msubsup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">H_0: \sigma^2_g=0</annotation></semantics></math></p></li>
+<li><p>Fixed-effects models use</p>
+<ul>
+<li>F-tests (which are ratios of sums-of-squares) to determine the “significance” of the sources of variation.</li>
+<li>t-tests are also used to compare coefficient estimates to zero.</li>
+</ul></li>
+<li><p>The best way to do this for a mixed-model is a <strong><em>likelihood ratio test</em></strong> <strong>(LRT)</strong>.</p>
+<ul>
+<li>LRTs compare focal models against so-called “null” models in which one or more variance component have been removed.</li>
+<li>Another way to say this is that LRTs compare nested models.</li>
+<li>ONLY nest-models. You cannot compare different datasets!</li>
+<li>The ratio of likelihoods of the two models is compared to a <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>χ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\chi^2</annotation></semantics></math>-distribution.</li>
+<li>NOTE: Models differing in fixed-effects should be compared with <em>maximum likelihood</em> (not REML); i.e.&nbsp;<code>REML=FALSE</code> in <code>lmer()</code>.</li>
+</ul>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>R</mi><mi>T</mi><mo>=</mo><mi>−</mi><mn>2</mn><mo>×</mo><mi>l</mi><mi>n</mi><mrow><mo stretchy="true" form="prefix">(</mo><mfrac displaystyle="true"><mrow><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>r</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>c</mi><mi>e</mi><mi>d</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mi>u</mi><mi>l</mi><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+LRT = -2 \times ln
+\left(\dfrac{L(reduced)}{L(full)}\right)
+</annotation></semantics></math></p></li>
+<li><p>If removing a particular variance component <em>improves</em> or <em>does not change</em> the fit of the model, that component is not of interest.</p></li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>mm_nullentry<span class="ot">&lt;-</span><span class="fu">lmer</span>(biomass<span class="fl">.1</span> <span class="sc">~</span>site.year <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>rep) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>entry<span class="sc">:</span>site.year),</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data =</span> al_alt)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(mm,mm_nullentry)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>refitting model(s) with ML (instead of REML)</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Data: al_alt
+Models:
+mm_nullentry: biomass.1 ~ site.year + (1 | rep) + (1 | entry:site.year)
+mm: biomass.1 ~ site.year + (1 | rep) + (1 | entry) + (1 | entry:site.year)
+             npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(&gt;Chisq)
+mm_nullentry    5 957.01 970.78 -473.50    947.01                     
+mm              6 958.75 975.27 -473.37    946.75 0.2648  1     0.6069</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmerTest)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rand</span>(mm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ANOVA-like table for random-effects: Single term deletions
+
+Model:
+biomass.1 ~ site.year + (1 | rep) + (1 | entry) + (1 | entry:site.year)
+                      npar  logLik    AIC     LRT Df Pr(&gt;Chisq)  
+&lt;none&gt;                   6 -469.64 951.28                        
+(1 | rep)                5 -470.00 950.00 0.71145  1    0.39896  
+(1 | entry)              5 -469.77 949.54 0.25599  1    0.61289  
+(1 | entry:site.year)    5 -471.14 952.29 3.00386  1    0.08307 .
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+</section>
+<section id="blup-vs.-blue" class="level2">
+<h2 class="anchored" data-anchor-id="blup-vs.-blue">BLUP vs.&nbsp;BLUE</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>blups<span class="ot">&lt;-</span><span class="fu">ranef</span>(mm)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>blups<span class="ot">&lt;-</span>blups<span class="sc">$</span>entry <span class="sc">%&gt;%</span> </span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">BLUP=</span><span class="st">`</span><span class="at">(Intercept)</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="at">var =</span> <span class="st">"entry"</span>)</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>blups_vs_means<span class="ot">&lt;-</span>adj_means <span class="sc">%&gt;%</span> <span class="fu">left_join</span>(blups)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(entry)`</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>blups_vs_means <span class="sc">%&gt;%</span> </span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>mean,<span class="at">y=</span>BLUP)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>,<span class="at">color=</span><span class="st">'darkred'</span>) <span class="sc">+</span> </span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope=</span><span class="dv">1</span>,<span class="at">color=</span><span class="st">'darkred'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># al_alt %&gt;% </span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   select(entry,biomass.1) %&gt;% </span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   left_join(blups) %&gt;% </span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   ggplot(.,aes(x=BLUP,y=biomass.1)) + geom_point() + </span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(y="Raw Biomass Observations",x="BLUPs")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="blups-are-shrinkage-estimates" class="level1">
+<h1>BLUPs are shrinkage estimates</h1>
+<p>If your data are completely balanced, the BLUP should be equal to the BLUE (but centered on zero).</p>
+<p>If there is missing data, or heterogeneity in the number of observations, BLUPs will shrink values towards the mean. Factor levels with fewer observations will be more shrunken then those with many. Intuitively, this is reflecting our confidence about the prediction when there is more data.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mi>L</mi><mi>U</mi><msub><mi>P</mi><mi>k</mi></msub><mo>=</mo><mi>B</mi><mi>L</mi><mi>U</mi><msub><mi>E</mi><mi>k</mi></msub><mo>×</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mi>λ</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">BLUP_k = BLUE_k \times \frac{1}{1+\lambda}</annotation></semantics></math></p>
+<p>Where, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mfrac><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><msubsup><mi>σ</mi><mi>u</mi><mn>2</mn></msubsup></mfrac></mrow><annotation encoding="application/x-tex">\lambda = \frac{\sigma^2_e}{\sigma^2_u}</annotation></semantics></math>.</p>
+<p>Can also be written as:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mi>L</mi><mi>U</mi><msub><mi>P</mi><mi>k</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>μ</mi><mo accent="true">̂</mo></mover><mi>k</mi></msub><mo>−</mo><mover><mi>μ</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac displaystyle="true"><msubsup><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mi>g</mi><mn>2</mn></msubsup><mrow><msubsup><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mi>g</mi><mn>2</mn></msubsup><mo>+</mo><mfrac><msubsup><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mi>e</mi><mn>2</mn></msubsup><msub><mi>r</mi><mi>k</mi></msub></mfrac></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">BLUP_k = (\hat{\mu}_k - \hat{\mu})
+  \times \left(\dfrac{\hat{\sigma}^2_g}{\hat{\sigma}^2_g +
+  \frac{\hat{\sigma}^2_e}{r_k}} \right)</annotation></semantics></math></p>
+<p>Notice that <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math> shrinks towards zero when <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>σ</mi><mi>u</mi><mn>2</mn></msubsup><annotation encoding="application/x-tex">\sigma^2_u</annotation></semantics></math> is large and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>σ</mi><mi>e</mi><mn>2</mn></msubsup><annotation encoding="application/x-tex">\sigma^2_e</annotation></semantics></math> becomes small. When <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math> is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\approx 0</annotation></semantics></math> then <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mi>L</mi><mi>U</mi><msub><mi>P</mi><mi>k</mi></msub><mo>≈</mo><mi>B</mi><mi>L</mi><mi>U</mi><msub><mi>E</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">BLUP_k \approx BLUE_k</annotation></semantics></math>.</p>
+<p>To demonstrate, I make some plots below to compare raw data, entry means and BLUPs.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>blups_vs_means <span class="sc">%&gt;%</span> </span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">BLUP=</span>BLUP<span class="sc">+</span><span class="fu">mean</span>(al_alt<span class="sc">$</span>biomass<span class="fl">.1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>emmean) <span class="sc">%&gt;%</span> </span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(mean,BLUP),</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to=</span><span class="st">"Estimate"</span>,</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to=</span><span class="st">"Values"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Estimate=</span><span class="fu">factor</span>(Estimate,<span class="at">levels=</span><span class="fu">c</span>(<span class="st">"mean"</span>,<span class="st">"BLUP"</span>))) <span class="sc">%&gt;%</span> </span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>Estimate,<span class="at">y=</span>Values,<span class="at">color=</span>entry,<span class="at">group =</span> entry)) <span class="sc">+</span> </span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(al_alt<span class="sc">$</span>biomass<span class="fl">.1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Notice that there are crossovers. Rankings by raw means or BLUEs won’t be identical to the BLUPs.</p>
+<p>Why? Heterogeneous observations. Lines with fewer obs should be more shrunken.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>blups_vs_means <span class="sc">%&gt;%</span> </span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">BLUP=</span>BLUP<span class="sc">+</span><span class="fu">mean</span>(al_alt<span class="sc">$</span>biomass<span class="fl">.1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>emmean) <span class="sc">%&gt;%</span> </span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(mean,BLUP),</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to=</span><span class="st">"Estimate"</span>,</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to=</span><span class="st">"Values"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Estimate=</span><span class="fu">factor</span>(Estimate,<span class="at">levels=</span><span class="fu">c</span>(<span class="st">"RawData"</span>,<span class="st">"mean"</span>,<span class="st">"BLUP"</span>))) <span class="sc">%&gt;%</span> </span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(al_alt <span class="sc">%&gt;%</span> <span class="fu">select</span>(entry,biomass<span class="fl">.1</span>) <span class="sc">%&gt;%</span> <span class="fu">rename</span>(<span class="at">Values=</span>biomass<span class="fl">.1</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Estimate=</span><span class="st">"RawData"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>Values,<span class="at">fill=</span>Estimate)) <span class="sc">+</span> </span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha=</span><span class="fl">0.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3_MixedModels_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="key-points" class="level1">
+<h1>Key points</h1>
+<p>Several connections to our downstream purposes:</p>
+<ol type="1">
+<li>Mixed-model analysis will enable us the flexiblity to accommodate real data structure</li>
+<li>Mixed-model variance component estimates are used in genetic analysis to compute the genetic and environmental components. The ratio of genetic to total variance (or <strong>heritability</strong>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>h</mi><mn>2</mn></msup><annotation encoding="application/x-tex">h^2</annotation></semantics></math> is a critical one in quantitative genetics).</li>
+<li>BLUEs or BLUPs are often sometimes as the response variable (the genetic component) of the phenotype in downstream GWAS/GP.</li>
+<li>For plant breeding, BLUP accounts for the risk of promoting a seemingly exceptional line based on too little data.</li>
+</ol>
+</section>
+<section id="hands-on" class="level1">
+<h1>Hands-on</h1>
+<ol type="1">
+<li>Balanced data:
+<ul>
+<li>Find a truly balanced example (no missing, all genotypes observed for all reps)</li>
+<li>Fit a fixed-effects model –&gt; get <code>emmeans</code> for <strong>entry</strong>
+<ul>
+<li>Use ANOVA to test the sources of variation</li>
+</ul></li>
+<li>Fit a mixed-model –&gt; get the BLUPs for <strong>entry</strong>
+<ul>
+<li>Use a LRT to test the variance components</li>
+</ul></li>
+<li>Compare the <code>emmeans</code> (basically the BLUEs) to the BLUPs</li>
+</ul></li>
+<li>Unbalanced data:
+<ul>
+<li>Two options:
+<ul>
+<li>1) induce missing data in your balanced data chunk</li>
+<li>2) choose another dataset that leads to heterogeneous observations across <strong>entries</strong> and/or other factors</li>
+</ul></li>
+<li>Postulate a model that is appropriate</li>
+<li>Fit the fixed-effects model, get <code>emmeans</code> and do ANOVA</li>
+<li>Fit the mixed-model, extract the BLUPs and do LRTs on var. comps</li>
+<li>Compare the raw data distribution to the BLUP distribution</li>
+<li>Compare the <code>emmeans</code> to the BLUPs</li>
+<li>Observe differential shrinkage across the <strong>entries</strong> by plotting the raw means or BLUEs against the BLUP values.</li>
+</ul></li>
+</ol>
+</section>
+<section id="next" class="level1">
+<h1>Next</h1>
+<p>That’s it for today.</p>
+<p>In the next session we will get into more complex variance-covariance structures using primarily <code>asreml()</code>.</p>
+<p>Other topics will include: 1. Model comparison with AIC/BIC 2. Data wrangling and exploratory data anlaysis 3. Loops, Functions –&gt; e.g.&nbsp;for analyzing multiple traits</p>
+<p>We’ll return with <a href="../lessons/4_MoreMixedModels.html">Hands-on Lesson 4 - More on Mixed Models</a>.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
