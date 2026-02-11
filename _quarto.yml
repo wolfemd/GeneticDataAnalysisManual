@@ -25,6 +25,8 @@ website:
       - section: "Module 2: Genotypes"
         contents:
           - lessons/6_GenoData.qmd
+          - lessons/7_GeneticEffects.qmd
+
 
 format:
   html:

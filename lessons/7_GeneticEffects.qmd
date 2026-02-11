@@ -1,0 +1,533 @@
+---
+title: "Modelling Genetic Effects"
+author: "Marnin Wolfe"
+format:
+  html:
+    toc: true
+    code-fold: false
+    html-math-method: mathml
+execute:
+  error: true
+  echo: true
+  warning: false
+  message: false
+bibliography: references.bib
+---
+
+**Previously**: [Genomic Data Exploration](6_GenoData.qmd)
+
+# Preamble
+
+In our most recent lecture, we discussed population genetics.
+
+We reviewed basic principles of inheritance of DNA sequence variation. We learned about some of population level forces, phenomena like mutation, genetic drift and natural selection that influence genetic variation and patterns of linkage disequilibrium in a population.
+
+In quantitative genetics, our interest is to understand the sources of **phenotypic** variation, especially the genetic component.
+
+In the next two Modules, we are going to be working with *molecular markers* and will focus on linking phenotypic to genotypic data. Something like this:
+
+![We observe the black triangles (markers). Ideally they are evenly and densely distributed across the genome. Almost always, the markers we observe will not be the causal polymorphisms influencing our phenotype-of-interest. Our trait is heritable and has several causal polymorphisms in the populationQTLs (red bars), but they are unknown to us. Crucially, we are relying on at least one marker to be in linkage disequilibrium with the QTL. If QTL and marker are strongly correlated enough, a genetic signal will be localized around the QTL. (Fig. Credit F. Ferrao)](images/clipboard-3670588908.png)
+
+Before we can detect QTL by *association*, we need a **model** relating phenotype-to-genotype.
+
+For today, assume we have a single known biallelic locus and we know the genotype and allele frequencies in our population without error.
+
+# Lesson Plan
+
+1.  **Theory**: Biometric Regression Model - Fisher's decomposition
+2.  **Hands-on:** Modeling genetic effects
+    -   Shiny App
+    -   Simple simulations in R
+3.  **Hands-on:** Hypothesis testing for allele effects
+
+------------------------------------------------------------------------
+
+# Theory
+
+-   For a complete review, start at Chapter 7 of @g.1962 (4th Ed.). Or any other quantitative genetics text book.
+
+Our starting point is known as Fisher's (1918) decomposition of the genotypic value (@fisher1918).
+
+## Total genetic value
+
+The **total genetic value** ($G$) of an individual is the sum across loci:
+
+$$G = A + D + I$$
+
+where:
+
+-   **G** = heritable component of performance of each individual
+-   **A** = additive genetic value (transmissible value relevant for selection/predicting selection response; a.k.a. the breeding value or the sum of allele substitution effects),
+-   **D** = dominance deviation (interaction between alleles within loci, deviation from **A**),
+-   **I** = epistatic deviation (interaction between loci).
+
+Assume that we **know** the **total genetic value** without error.
+
+In real life, imagine we have conducted a trial, fit a mixed-model controlling for all the non-genetic factors and we obtain adjusted values (i.e. BLUEs) for the **genetic (**$G$) component. We now have a trait value that excludes all non-genetic effects.
+
+For a **single bi-allelic locus** with alleles $A_1$ and $A_2$, define the value of each **genotype**:
+
+| Genotype | Genetic value |
+|:---------|---------------|
+| $A_1A_1$ | $+a$          |
+| $A_1A_2$ | $d$           |
+| $A_2A_2$ | $-a$          |
+
+where:
+
+-   a = half the difference between homozygotes $a = \frac{G_{A_1A_1} - G_{A_2A_2}}{2}$
+-   d = dominance deviation (heterozygote departure from the midpoint)
+
+This describes performance of indviduals **but not** inheritance.
+
+![The genotypic scale of measurement for quantitative traits. \[figure from Hamilton, 2009 via Ferrao\]](images/clipboard-3082046789.png)
+
+In this example, the value **d** is called the **dominance** and **a** is called the **additive** value (d=5.25).
+
+We can define the ratio $k = d / a$ as the **degree of dominance**.
+
+-   If inheritance is **completely dominant** $k$ will be either -1 or +1, depending on which allele is dominant.
+-   If there is no dominance, $k$ and $d = 0$, and the heterozygote is exactly the mid-point of the homozygotes. The trait is said to be purely **additive**
+-   We can also define **overdominance** ($k>1$) and **underdominance** ($k<1$)
+
+## Biometric regression
+
+![Fisher's Biometric Regression Model (from Hamilton, 2009 via Ferrao)](images/clipboard-2354925116.png)
+
+-   This connects the heritable part of the phenotype (the **genotypic value,** $G$) on the y-axis,
+-   To the numerical encoding of the **genotype** at a single locus, counting the number of $A_1$ alleles (in the figure above). We call this the **allele dosage**.
+-   This set-up implies a least-squares regression, $G = X\alpha + d$
+    -   where $X$ is the allele dosage
+    -   the residual measures the **dominance deviation** ($d$)
+    -   the slope estimates the **allele substitution effect** ($\alpha$).
+    -   The **dominance deviation** is therefore a deviation from the **breeding value**
+
+## Allele substitution effects
+
+The **average effect of allele substitution** answers this question:
+
+> What is the expected change in phenotype if I replace allele $A_1$ with allele $A_2$ in a *random genetic background*?
+
+It should already be clear from the figure, but $\alpha \neq a$ (unless dominance is completely absent). Instead:
+
+$$
+\alpha = a + d(q-p)
+$$
+
+Key points:
+
+-   $\alpha$ depends on allele frequency
+-   Dominance effect is "absorbed" into the average additive effect.
+-   $\alpha$ is a *population-specific regression coefficient*
+    -   Hint: Our GWAS effect sizes are going to be population-dependent for this reason.
+
+## Breeding Values
+
+**Breeding value (BV)** is defined as:
+
+> The expected deviation of an individual’s offspring from the population mean, averaged over random mates.
+
+Other points about BVs:
+
+-   They are **deviations** (from population mean)
+-   The **mean breeding value** is always zero.
+-   Expresses the value a parent transmits to it's offspring.
+-   Can be measured "the hard way": by observing many offspring from many mates. BVs are the mean value of all possible offspring an individual can make.
+-   BVs are useful to predict the mean of a cross. The expectation (mean value) of a particular cross (mate pair) is the average of the two parent's breeding values (BVs). $\bar{A_{fam}} = \frac{A_{pollen} + A_{seed}}{2}$
+
+## Encoding the regression
+
+If all we care about is a linear-effect (a purely additive model), then the regression model is straightforward. Namely, we could simply encode our predictor as:
+
+$$
+genotype \in \{0, 1, 2\}
+$$
+
+$$
+y_i = \mu + \sum_{j=1}^m \Big( z_{ij} a_j \Big) + e_i
+$$
+
+Or in matrix form, $y = Z\beta + \epsilon$, with $\beta = [\mu \space a]^T$ and $Z$ is a design matrix:
+
+```{r}
+Z<-matrix(
+  c(1,0,2,1,
+    1,1,1,1,
+    1,1,1,0,
+    1,1,1,2,
+    1,1,0,0,
+    1,0,1,1),
+  nrow = 6, byrow = TRUE)
+colnames(Z)<-c("mean","SNP1","SNP2","SNP3")
+Z
+```
+
+However, if we want to quantify **dominance** in addition to **additive** effects, there are two different ways to encode the regression.
+
+The distinction is best described in a few papers dealing with genomic prediction [@Vitezica2013; @varona2018].
+
+### Classical Parameterization
+
+In quantitative genetics, we are often most interested in decomposing genotypic value in a way that informs about offspring and evolution. In other words, we want **breeding values** and **dominance deviations** as depicted above.
+
+**Mean-centered (deviation) coding:** $z = (allele\_dosage) - 2p$ 
+
+This encodes deviations from the population mean genotype.
+
+$$
+z_{ij} \;=\;
+\begin{cases}
+2 - 2p_j, & A_1A_1\\
+1 - 2p_j, & A_1A_2\\
+0-2p_j,    & A_2A_2
+\end{cases}
+$$ This makes the expectation (mean) of the predictors $E(z_{\cdot j}) = 0$
+
+With this encoding,
+
+$$
+y_i = \mu + \sum_{j=1}^m z_{ij} \alpha_j + e_i
+$$
+
+The distinction being that $\alpha_j$ instead of $a_j$ is being estimated.
+
+With this encoding:
+
+$$
+G_i = \mu + z_i\alpha
+$$
+
+-   $\mu$ = population mean
+-   $z_i\alpha$ is the **breeding value** (BV)
+
+So:
+
+$$
+BV_i = z_i\alpha
+$$
+
+Breeding values:
+
+-   are deviations
+-   average to zero
+-   match response-to-selection theory
+-   are what we usually want to predict for genomic selection / plant breeding.
+
+The **total genetic value** in an **additive plus dominance deviation** model is thus:
+
+$$
+G = BV + D
+$$
+
+Use example: for clonal crops, prediction of total genetic value is useful because the performance of **individuals** is of interest, not just of the **offspring**.
+
+To capture an estimate of the **dominance deviation**, we need to encode the genotypes as follows:
+
+$$
+y_i \;=\; \mu \;+\; \sum_{j=1}^m \Big( z_{ij}\, \alpha_j \;+\; w_{ij}\, d_j \Big) \;+\; e_i
+$$
+
+$$
+z_{ij} \;=\;
+\begin{cases}
+2 - 2p_j, & A_1A_1\\[4pt]
+1 - 2p_j, & A_1A_2\\[4pt]
+-2p_j,    & A_2A_2
+\end{cases}
+\qquad
+w_{ij} \;=\;
+\begin{cases}
+-2q_j^{2},     & A_1A_1\\[4pt]
+2p_j q_j,      & A_1A_2\\[4pt]
+-2p_j^{2},     & A_2A_2
+\end{cases}
+$$
+
+Note that with this parameterization $Cov(BV,D)=0$, they become orthogonal predictors. Correlated predictors means non-independent estimates.
+
+### Genotypic Parameterization
+
+Also called the "biological" parameterization.
+
+$$
+z_{ij} \;=\;
+\begin{cases}
+2 - 2p_j, & A_1A_1\\[4pt]
+1 - 2p_j, & A_1A_2\\[4pt]
+0-2p_j,    & A_2A_2
+\end{cases}
+\qquad
+h_{ij} \;=\;
+\begin{cases}
+0 - 2p_j q_j, & A_1A_1 \\[4pt]
+1 - 2p_j q_j, & A_1A_2 \\[4pt]
+0 - 2p_j q_j, & A_2A_2
+\end{cases}
+$$
+
+Personally, don't find this naming convention helpful.
+
+Importantly, the *interpretation* of the estimated effects is different.
+
+The model is almost the same: $$
+y_i \;=\; \mu \;+\; \sum_{j=1}^m \Big( z_{ij}\, a_j \;+\; w_{ij}\, d_j \Big) \;+\; e_i
+$$ We are just estimating the little $a$ and $d$ values instead of $\alpha$ and $d$.
+
+Seems like a minor difference, but depends on your purpose.
+
+If you are predicting for selection, you don't want $a$, you want $\alpha$.
+
+If you're doing a GWAS, it should be fine. You just need to understand the model that is mapping genotype-to-phenotype.
+
+In fact, estimates from the "biological" could be converted to BVs and Dom. Dev's as $\alpha = a + d(q-p)$.
+
+NOTE: The **total genetic values** from both models are identical.
+
+## Genetic values table
+
+Here's a non-comprehensive table summarizing some of the features of Fisher's decomposition of the genotypic value.
+
++--------------------------------------+-------------+-------------------+-------------+
+| Genotype                             | A1A1        | A1A2              | A2A2        |
++:=====================================+:============+:==================+:============+
+| Genotypic value relative to midpoint | $+a$        | $d$               | $-a$        |
++--------------------------------------+-------------+-------------------+-------------+
+| Geno Frequency                       | $p^2$       | $2pq$             | $q^2$       |
++--------------------------------------+-------------+-------------------+-------------+
+| Genotype mean\                       | $p^2a$      | $2pqd$            | $−q^2a$     |
+| (Freq x Value)                       |             |                   |             |
++--------------------------------------+-------------+-------------------+-------------+
+| Genotypic value relative to pop mean | $2q(a−dp)$  | $a(p+q)+d(1-2pq)$ | $−2p(a−dp)$ |
++--------------------------------------+-------------+-------------------+-------------+
+| Breeding Value                       | $2𝑞\alpha$  | $(𝑞−𝑝)\alpha$     | $−2𝑝\alpha$ |
++--------------------------------------+-------------+-------------------+-------------+
+| Dominance Deviation                  | $-2𝑞^2d$    | $2pqd$            | $-2𝑝^2d$    |
++--------------------------------------+-------------+-------------------+-------------+
+
+There is considerable more than can be derived from here, for example genetic variances. As this is an analytics focused class, I'll refer your to your local QG textbook for more!
+
+------------------------------------------------------------------------
+
+# Hands-on
+
+A few practice goals for today.
+
+1.  Examine the influence of **allele frequencies** and the **degree of dominance** on genetic effects.
+2.  Set-up a biometric regression and compare estimates obtained from the two parameterizations ("classical" and "genotypic").
+
+## I. QG Shiny App
+
+Visit: <https://neyhartj.shinyapps.io/qgshiny/>
+
+The page should be self-explanatory.
+
+The Shiny App provides a code-free simulator with adjustable parameters.
+
+## II. Simple simulation in R
+
+```{r, eval=F}
+# Simulation
+x=1:20
+n = length(x)
+a = 0.2
+b = 0.3
+sigma=0.5
+y = a + b*x + sigma*rnorm(n)
+
+# Fitting the model
+b = cov(x,y)/var(x)
+a = mean(y) - b*mean(x)
+
+# Using the lm function
+summary(lm(y~x))
+```
+
+Now we'll make a simulation of the biometric regression model:
+
+-   Try different levels of d
+-   Try different frequencies:
+    -   q more than p,
+    -   p more than q,
+    -   p and q equal or similar
+
+```{r, eval=F}
+# Biometric Plot
+
+# Parameters a, d (additive and dominance values); p, q (allele frequencies)
+a = 1; 
+d = 0*a
+p = 0.5; q = 1 - p
+
+alpha <- a + d*(q - p)
+a1a1 <- 2*alpha*q
+a1a2 <- (q-p)*alpha
+a2a2 <- -2*p*alpha
+
+plot(c(0, 1, 2), c(-a, d, a), 
+     xlab="Genotype",ylab="", cex.lab=1, xaxt="n", pch=16, cex=1, col="black",
+     main = paste("a=", a, ",", "d=",d, "\n", "p=",p,"q=",q)); 
+axis(1, at=c(0, 1, 2), labels=c("A2A2", "A1A2", "A1A1")); 
+mtext("Genotypic Value", side = 2, line = 2, cex=1, col="black")
+points(c(0, 1, 2), c(a2a2, a1a2, a1a1), cex=2, col="black")
+lines(c(0, 1, 2), c(a2a2, a1a2, a1a1), lwd=2, col="black")
+```
+
+![Not to give it all away, but this is a somewhat common depiction of WHY the biometric regression estimates are genotype frequency dependent. The estimate is \_weighted\_ by and susceptible to variation in the numbers of each genotype observed. \[FYI: found figure on google, couldn't identify original source\]](images/clipboard-3918255196.png)
+
+## III. Classical vs. Genotypic
+
+As in the previous simulation, your goal should be make adjustments to the parameters and to observe how *estimates* change and how the compare to *true values*.
+
+Parameters to tune:
+
+-   "Error" - adjust the amounts of `sigma_e` to simulate more or less heritability
+-   Try different levels of d
+-   Try different frequencies:
+    -   q more than p,
+    -   p more than q,
+    -   p and q equal or similar
+
+```{r, eval=F}
+# Credit to ChatGPT for helping me get a simulation together
+## Not the simple, useful method to simulate genetic and environmental effects
+## I've reviewed this and vouch for it's correctness.
+
+## -----------------------------------------
+## Biological vs Classical parameterizations
+## Additive + Dominance at one biallelic locus
+## -----------------------------------------
+set.seed(1)
+
+# --- "biological" genotypic-value parameters ---
+a_true <- 1.0      # half difference between homozygotes
+d_true <- 0.6      # heterozygote deviation
+p <- 0.7           # Pr(A1)
+q <- 1 - p
+
+n <- 4000
+sigma_e <- 1.0
+
+# --- simulate genotypes under HWE (for clean expectations) ---
+geno <- sample(c("A2A2","A1A2","A1A1"), size = n, replace = TRUE,
+               prob = c(q^2, 2*p*q, p^2))
+
+# --- map to biological genotypic values: A1A1=+a, A1A2=d, A2A2=-a ---
+G <- ifelse(geno == "A1A1",  a_true,
+     ifelse(geno == "A1A2",  d_true,
+            -a_true))
+
+y <- G + rnorm(n, 0, sigma_e)
+dat <- data.frame(y = y, geno = geno)
+
+# Helper: allele count of A1
+countA1 <- ifelse(dat$geno == "A1A1", 2,
+           ifelse(dat$geno == "A1A2", 1, 0))
+```
+
+```{r, eval=F}
+# ------------------------------------------------------------
+# (1) Biological / Genotypic-value regression parameterization
+# ------------------------------------------------------------
+
+# Center predictors
+x_bio <-countA1 - 2*p
+h_bio <- ifelse(dat$geno == "A1A2",  1,  0)    # {0,1,0}
+h_bio <- h_bio - (2*p*q)
+dat<-transform(dat,x_bio=x_bio, h_bio=h_bio)
+# Fit regression model
+fit_bio <- lm(y ~ x_bio + h_bio, data = dat)
+summary(fit_bio)
+```
+
+```{r, eval=F}
+# ------------------------------------------------------------
+# (2) CLASSICAL coding 
+# z_{ij} = (#A1) - 2p
+# w_{ij} = -2q^2 (A1A1), 2pq (A1A2), -2p^2 (A2A2)
+# ------------------------------------------------------------
+z <- countA1 - 2*p
+
+w <- ifelse(dat$geno == "A1A1", -2*q^2,
+                    ifelse(dat$geno == "A1A2",  2*p*q,
+                           -2*p^2))
+dat<-transform(dat, z = z, w = w)
+fit_class <- lm(y ~ z + w, data = dat)
+
+# summary(fit_class)
+# ------------------------------------------------------------
+# Compare coefficients and mapping
+# ------------------------------------------------------------
+cat("\n--- Biological: estimates of a and d ---\n")
+print(coef(fit_bio))
+
+cat("\n--- Classical: estimates of alpha and delta ---\n")
+print(coef(fit_class))
+```
+
+```{r, eval=F}
+# Theoretical allele substitution effect:
+alpha_true <- a_true + d_true*(q - p)
+
+# From biological estimates:
+a_hat <- coef(fit_bio)["x_bio"]
+d_hat <- coef(fit_bio)["h_bio"]
+alpha_hat_from_bio <- a_hat + d_hat*(q - p)
+
+alpha_hat_direct <- coef(fit_class)["z"]
+delta_hat_direct <- coef(fit_class)["w"]
+
+cat("\n--- Truth & cross-checks ---\n")
+cat(sprintf("alpha_true = %.4f\n", alpha_true))
+cat(sprintf("alpha_hat (direct, classical) = %.4f\n", alpha_hat_direct))
+cat(sprintf("alpha_hat (from bio a_hat + d_hat*(q-p)) = %.4f\n", alpha_hat_from_bio))
+
+cat(sprintf("\nNote: under this orthogonal classical coding, delta is typically interpretable as a dominance effect coefficient.\n"))
+cat(sprintf("delta_hat (classical) = %.4f ; d_hat (biological) = %.4f\n", delta_hat_direct, d_hat))
+```
+
+## IV. Orthogonality
+
+Correlation of estimates.
+
+Recall that in a linear model, it is assumed that predictors are uncorrelated. In statistics, we say "orthogonal" although the meaning isn't exactly the same. 
+
+
+The **classical** parameterization is known to be "orthogonal" in it's partition of effects. In other words, the predictors for the allele substitution effec ($\alpha$) and the dominance deviation ($\delta$) should be uncorrelated.
+
+However, that's not the case for the **genotypic** model. 
+
+Two ways to observe this. First, just look at the correlation of the predictors:
+```{r, eval=F}
+cor(dat$z,dat$w)
+cor(dat$x_bio,dat$h_bio)
+```
+
+Next, look at the correlation among estimates, which is extractable from the `lm()` model fit, like so:
+```{r, eval=F}
+## For the "Classical" model
+# Get the variance-covariance matrix
+v <- vcov(fit_class)
+# Convert to correlation matrix
+cor_matrix <- cov2cor(v)
+print(cor_matrix)
+
+# Compare to "biological" / "genotypic" parameterization
+cov2cor(vcov(fit_bio))
+```
+
+**PRACTICAL:** For prediction, either model is fine. For estimation, e.g. of variance components, the **classical** approach, is best.
+
+## V. Hypothesis testing
+
+A final and quick activity on hypothesis testing.
+
+We will dig into this more as we proceed with Module 3 on GWAS.
+
+I will give you examples then.
+
+In our previous lessons on [linear fixed-effects](2_LinearModels.qmd) and [mixed-effects models](4_MoreMixedModels.qmd) we introduced methods of hypothesis testing (t-test and F-test for fixed-effects; likelihood ratio tests for random-effects in mixed models).
+
+How would you determine if the genotypic variation at a locus was "causal", that is, was "statistically significant" in its influence on the model fit?
+
+HINT: There is more than one way. 
+
