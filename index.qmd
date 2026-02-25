@@ -43,4 +43,4 @@ Department of Crop, Soil & Environmental Sciences, Auburn University
 
 ### Module 3: GWAS
 
--   [Introduction to GWAS in R](lessons/8_IntroGWAS.html) - `GAPIT` 
+-   [Lesson 8 - Introduction to GWAS in R](lessons/8_IntroGWAS.html) - `GAPIT` 
