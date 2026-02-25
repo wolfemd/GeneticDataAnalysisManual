@@ -26,7 +26,9 @@ website:
         contents:
           - lessons/6_GenoData.qmd
           - lessons/7_GeneticEffects.qmd
-
+      - section: "Module 3: GWAS"
+        contents:
+          - lessons/8_IntroGWAS.qmd
 
 format:
   html:

@@ -450,3 +450,7 @@ Now it's your turn!
 
 1.  Explore the available SNP datasets. Use the examples above, but check out the manual, see what you can do with what you've got. Try to get to go beyond the PCA we demonstrated above. Identify sub-groups in the data (hints given above) and color-code and see if you can distinguish the groups in genetic space using the PCA results. 
 2.  Work on learning to interact with the **shell** (command line). If you need to, install WSL or find another way to get up and running with some of the software mentioned above (e.g. `plink`).
+
+# Next
+
+[Modelling Genetic Effects](7_GeneticEffects.qmd)

@@ -181,7 +181,9 @@ z_{ij} \;=\;
 1 - 2p_j, & A_1A_2\\
 0-2p_j,    & A_2A_2
 \end{cases}
-$$ This makes the expectation (mean) of the predictors $E(z_{\cdot j}) = 0$
+$$ 
+
+This makes the expectation (mean) of the predictors $E(z_{\cdot j}) = 0$
 
 With this encoding,
 
@@ -531,3 +533,6 @@ How would you determine if the genotypic variation at a locus was "causal", that
 
 HINT: There is more than one way. 
 
+# Next
+
+[Introduction to GWAS in R](8_IntroGWAS.qmd)

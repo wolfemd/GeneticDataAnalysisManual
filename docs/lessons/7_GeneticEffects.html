@@ -3990,6 +3990,23 @@ vertical-align: -.125em;
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Module 3: GWAS</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lessons/8_IntroGWAS.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Intro to GWAS</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
@@ -4023,6 +4040,7 @@ vertical-align: -.125em;
   <li><a href="#iv.-orthogonality" id="toc-iv.-orthogonality" class="nav-link" data-scroll-target="#iv.-orthogonality">IV. Orthogonality</a></li>
   <li><a href="#v.-hypothesis-testing" id="toc-v.-hypothesis-testing" class="nav-link" data-scroll-target="#v.-hypothesis-testing">V. Hypothesis testing</a></li>
   </ul></li>
+  <li><a href="#next" id="toc-next" class="nav-link" data-scroll-target="#next">Next</a></li>
   </ul>
 </nav>
     </div>
@@ -4236,7 +4254,7 @@ y_i = \mu + \sum_{j=1}^m \Big( z_{ij} a_j \Big) + e_i
 <section id="classical-parameterization" class="level3">
 <h3 class="anchored" data-anchor-id="classical-parameterization">Classical Parameterization</h3>
 <p>In quantitative genetics, we are often most interested in decomposing genotypic value in a way that informs about offspring and evolution. In other words, we want <strong>breeding values</strong> and <strong>dominance deviations</strong> as depicted above.</p>
-<p><strong>Mean-centered (deviation) coding:</strong> <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mi>l</mi><mi>l</mi><mi>e</mi><mi>l</mi><msub><mi>e</mi><mi>d</mi></msub><mi>o</mi><mi>s</mi><mi>a</mi><mi>g</mi><mi>e</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mn>2</mn><mi>p</mi></mrow><annotation encoding="application/x-tex">z = (allele_dosage) - 2p</annotation></semantics></math></p>
+<p><strong>Mean-centered (deviation) coding:</strong> <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mi>l</mi><mi>l</mi><mi>e</mi><mi>l</mi><mi>e</mi><mi>_</mi><mi>d</mi><mi>o</mi><mi>s</mi><mi>a</mi><mi>g</mi><mi>e</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mn>2</mn><mi>p</mi></mrow><annotation encoding="application/x-tex">z = (allele\_dosage) - 2p</annotation></semantics></math></p>
 <p>This encodes deviations from the population mean genotype.</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>2</mn><mo>−</mo><mn>2</mn><msub><mi>p</mi><mi>j</mi></msub><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>A</mi><mn>1</mn></msub><msub><mi>A</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn><mo>−</mo><mn>2</mn><msub><mi>p</mi><mi>j</mi></msub><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>A</mi><mn>1</mn></msub><msub><mi>A</mi><mn>2</mn></msub></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn><mo>−</mo><mn>2</mn><msub><mi>p</mi><mi>j</mi></msub><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>A</mi><mn>2</mn></msub><msub><mi>A</mi><mn>2</mn></msub></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
 z_{ij} \;=\;
@@ -4245,7 +4263,8 @@ z_{ij} \;=\;
 1 - 2p_j, &amp; A_1A_2\\
 0-2p_j,    &amp; A_2A_2
 \end{cases}
-</annotation></semantics></math> This makes the expectation (mean) of the predictors <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>z</mi><mrow><mi>⋅</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">E(z_{\cdot j}) = 0</annotation></semantics></math></p>
+</annotation></semantics></math></p>
+<p>This makes the expectation (mean) of the predictors <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>z</mi><mrow><mi>⋅</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">E(z_{\cdot j}) = 0</annotation></semantics></math></p>
 <p>With this encoding,</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mi>μ</mi><mo>+</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>α</mi><mi>j</mi></msub><mo>+</mo><msub><mi>e</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
 y_i = \mu + \sum_{j=1}^m z_{ij} \alpha_j + e_i
@@ -4599,10 +4618,14 @@ y_i \;=\; \mu \;+\; \sum_{j=1}^m \Big( z_{ij}\, a_j \;+\; w_{ij}\, d_j \Big) \;+
 <p>In our previous lessons on <a href="../lessons/2_LinearModels.html">linear fixed-effects</a> and <a href="../lessons/4_MoreMixedModels.html">mixed-effects models</a> we introduced methods of hypothesis testing (t-test and F-test for fixed-effects; likelihood ratio tests for random-effects in mixed models).</p>
 <p>How would you determine if the genotypic variation at a locus was “causal”, that is, was “statistically significant” in its influence on the model fit?</p>
 <p>HINT: There is more than one way.</p>
-
-
-
 </section>
+</section>
+<section id="next" class="level1">
+<h1>Next</h1>
+<p><a href="../lessons/8_IntroGWAS.html">Introduction to GWAS in R</a></p>
+
+
+
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">

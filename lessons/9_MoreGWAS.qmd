@@ -1,0 +1,121 @@
+---
+title: "Untitled"
+execute:
+  error: false
+  echo: false
+  warning: false
+  message: false
+---
+
+-   
+
+Questions to ask yourself: - How much variance
+
+# \[if time\] Pop. structure simulation
+
+See [ ](file:///Users/mw489/My%20Drive/1-Projects/CSES7160/GeneticDataAnalysis_SP26/Resources/qg_ferrao/mas/PopStructure.html#hands-on) for ref.
+
+# \[if time\] Power analysis
+
+The genpwr package performs power and sample size calculations for genetic association studies, considering the impact of misspecification of the genetic model.
+
+See Ferrao demo for ref
+
+# \[if time\] LD plots
+
+# SCRATCH
+
+### From 2022 workshop
+
+```{r, eval=F}
+library(tidyverse)
+snps<-readRDS(here::here("data/cassava_workshop_data","dosages.rds"))
+pheno<-read.csv(here::here("data/cassava_workshop_data","phenotype.csv"),skip = 2)
+table(rownames(snps) %in% pheno$germplasmName)
+table(pheno$germplasmName %in% rownames(snps))
+read.csv(here::here("data/cassava_workshop_data","phenotype.csv"),skip = 2) %>% 
+  count(germplasmName)
+pheno$cassava.mosaic.disease.severity.3.month.evaluation.CO_334.0000192 %>% hist
+pheno$dry.matter.content.percentage.CO_334.0000092 %>% hist
+
+```
+
+```{r, eval=F}
+dbdata<-readDBdata(phenotypeFile = here::here("data","phenotype.csv"),
+                   metadataFile = here::here("data","metadata.csv"))
+#> Joining, by = c("studyYear", "programDbId", "programName", "programDescription", "studyDbId", "studyName", "studyDescription", "studyDesign", "plotWidth", "plotLength", "fieldSize", "fieldTrialIsPlannedToBeGenotyped", "fieldTrialIsPlannedToCross", "plantingDate", "harvestDate", "locationDbId", "locationName")
+dbdata %<>% 
+     group_by(studyName) %>% 
+     summarize(N_replicate=length(unique(replicate)),
+               N_blockNumber=length(unique(blockNumber)),
+               doRepsEqualBlocks=all(replicate==blockNumber)) %>% 
+     ungroup() %>% 
+     mutate(CompleteBlocks=ifelse(N_replicate>1,TRUE,FALSE),
+            IncompleteBlocks=ifelse(N_blockNumber>1 & !doRepsEqualBlocks,TRUE,FALSE)) %>% 
+     left_join(dbdata) %>% 
+     mutate(yearInLoc=paste0(programName,"_",locationName,"_",studyYear),
+            trialInLocYr=paste0(yearInLoc,"_",studyName),
+            repInTrial=paste0(trialInLocYr,"_",replicate),
+            blockInRep=paste0(repInTrial,"_",blockNumber))
+#> Joining, by = "studyName"
+#> 
+traitabbrevs<-tribble(~TraitAbbrev,~TraitName,
+        "CMD1S","cassava.mosaic.disease.severity.1.month.evaluation.CO_334.0000191",
+        "CMD3S","cassava.mosaic.disease.severity.3.month.evaluation.CO_334.0000192",
+        "CMD6S","cassava.mosaic.disease.severity.6.month.evaluation.CO_334.0000194",
+        "DM","dry.matter.content.percentage.CO_334.0000092",
+        "RTWT","fresh.storage.root.weight.per.plot.CO_334.0000012",
+        "NOHAV","plant.stands.harvested.counting.CO_334.0000010")
+
+dbdata<-renameAndSelectCols(traitabbrevs,
+                            indata=dbdata,
+                            customColsToKeep = c("observationUnitName",
+                                                 "CompleteBlocks",
+                                                 "IncompleteBlocks",
+                                                 "yearInLoc",
+                                                 "trialInLocYr",
+                                                 "repInTrial","blockInRep"))
+
+# QC Trait values
+# comment out the traits not present in this dataset
+dbdata<-dbdata %>% 
+     dplyr::mutate(CMD1S=ifelse(CMD1S<1 | CMD1S>5,NA,CMD1S),
+                   CMD3S=ifelse(CMD3S<1 | CMD3S>5,NA,CMD3S),
+                   # CMD6S=ifelse(CMD6S<1 | CMD6S>5,NA,CMD6S), 
+                   # CMD9S=ifelse(CMD9S<1 | CMD9S>5,NA,CMD9S),
+                   # CGM=ifelse(CGM<1 | CGM>5,NA,CGM),
+                   # CGMS1=ifelse(CGMS1<1 | CGMS1>5,NA,CGMS1),
+                   # CGMS2=ifelse(CGMS2<1 | CGMS2>5,NA,CGMS2),
+                   DM=ifelse(DM>100 | DM<=0,NA,DM),
+                   RTWT=ifelse(RTWT==0 | NOHAV==0 | is.na(NOHAV),NA,RTWT),
+                   # SHTWT=ifelse(SHTWT==0 | NOHAV==0 | is.na(NOHAV),NA,SHTWT),
+                   # RTNO=ifelse(RTNO==0 | NOHAV==0 | is.na(NOHAV),NA,RTNO),
+                   NOHAV=ifelse(NOHAV==0,NA,NOHAV),
+                   NOHAV=ifelse(NOHAV>42,NA,NOHAV)
+                   # RTNO=ifelse(!RTNO %in% 1:10000,NA,RTNO)
+     )
+
+# Season-wide mean disease severity
+dbdata<-dbdata %>% 
+  mutate(MCMDS=rowMeans(.[,colnames(.) %in% c("CMD1S","CMD3S","CMD6S","CMD9S")], na.rm = T)) %>% 
+  select(-any_of(c("CMD1S","CMD3S","CMD6S","CMD9S")))
+
+pheno %>% 
+  count(studyName)
+
+pheno %>% 
+  filter(studyName=="17.GS.GeneticGain.UB") %>% select(contains("Mosaic"))
+
+```
+
+### More scratch
+
+```{r GAPIT example data, eval=F}
+# myY <- read.table(here::here("data/GAPIT_Tutorial_Data","mdp_traits.txt"), head = TRUE)
+# myGD<-read.table(here::here("data/GAPIT_Tutorial_Data","mdp_numeric.txt"), head = TRUE)
+# myGM <- read.table(here::here("data/GAPIT_Tutorial_Data","mdp_SNP_information.txt"), head = TRUE)
+# myK <- read.table(here::here("data/GAPIT_Tutorial_Data","KSN.txt"), head = FALSE)
+# myY %>% head
+# myGD[1:5,1:5]
+# myK[1:5,1:5]
+```

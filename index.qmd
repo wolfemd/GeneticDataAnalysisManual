@@ -38,5 +38,9 @@ Department of Crop, Soil & Environmental Sciences, Auburn University
 
 ### Module 2: Genotypes
 
--   [Lesson 6 - Genomic Data Exploration](lessons/6_GenoData.html) - `ASRgenomics` 
+-   [Lesson 6 - Genomic Data Exploration](lessons/6_GenoData.html) - `ASRgenomics`
 -   [Lesson 7 - Modelling Genetic Effects](lessons/7_GeneticEffects.html)
+
+### Module 3: GWAS
+
+-   [Introduction to GWAS in R](lessons/8_IntroGWAS.html) - `GAPIT` 
