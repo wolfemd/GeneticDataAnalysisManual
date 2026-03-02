@@ -1,0 +1,404 @@
+---
+title: "Partitioning Genomic Variance"
+author: "Marnin Wolfe"
+format:
+  html:
+    toc: true
+    code-fold: false
+    html-math-method: mathml
+execute:
+  error: true
+  echo: true
+  warning: false
+  message: false
+bibliography: references.bib
+---
+
+**Previously**: [Intro to GWAS](8_IntroGWAS.qmd)
+
+# Lesson Plan
+
+This lesson will be short.
+
+You will learn how to fit a mixed-model including a genomic relationship matrix.
+
+We will partition the genomic variance explainable by markers into **additive**, **dominance** and **epistatic** components.
+
+# Background
+
+**Heritability:** the proportion of phenotypic variability arising from genetic sources
+
+-   Squared correlation between true breeding value and phenotype
+-   Central quantity in all genetics-related fields
+-   Theoretical, although in practice unattainable, upper limit of (GWAS) discovery
+-   In fact, when GWAS is conducted even using progressively larger sample sizes and whole genome sequences, the "significant" hits never add up to heritability.
+
+$$
+\sigma^2_P = \sigma^2_g + \sigma^2_{\varepsilon}
+$$
+
+$$
+\sigma^2_g = \sigma^2_a + \sigma^2_d + \sigma^2_{epi}
+$$
+
+$$
+\sigma^2_{epi} = \sigma^2_{AA} + \sigma^2_{AD} + \sigma^2_{DD} + \sigma^2_{AAA} + \dots
+$$
+
+**Heritability in the Broad-sense**
+
+$$
+H^2 = \frac{\sigma^2_g}{\sigma^2_P}
+$$
+
+**Heritability in the Narrow-sense**
+
+$$
+h^2 = \frac{\sigma^2_a}{\sigma^2_P}
+$$
+
+$\sigma^2_a$ is the variance in true breeding values
+
+Breeding values are $bv = Z\alpha$, where $Z$ is a matrix of mean-centered dosages at causal polymorphisms of a population, $bv$ is a vector of breeding values, $\alpha$ is a vector of true allele substitution effects. Refer back to our \[treatment of the theory\]. The **narrow-sense heritability** can tell us the predicted response to selection: $R = h^2S$, where **R** is the change in population mean across generation, and **S** is the selection differential (mean difference between total pop. and selected group of parents).
+
+In our [previous lesson on GWAS](8_IntroGWAS.qmd), we learned about using **genomic relationship matrices** (GRMs), aka kinship matrices constructed from markers to measure genetic relatedness. We introduced the topic as it relates to the control for cryptic relatedness in GWAS, using a mixed linear-model (**MLM**).
+
+**Modeling Additive and Dominance Effects with Mixed-Models**
+
+In the context of marker-trait regression, [in an earlier lesson](7_GeneticEffects.qmd), you learned about partitioning genetic effects into additive and dominance-deviation effects.
+
+We'll use a similar principal here. Instead of a marker-trait regression, we'll construct additive and dominance relationship matrices and use them as inputs (known covariances) in a mixed-model [@Vitezica2013; @muñoz2014;@varona2018].
+
+**Additive Marker Matrix**
+
+Markers are encoded into a matrix **Z** with dimensions of nInd x nSNP (individuals are rows, SNPs are columns). Elements of the matrix are $z_{ij}$.
+
+$$
+z_{ij} \;=\;
+\begin{cases}
+2 - 2p_j, & A_1A_1\\[4pt]
+1 - 2p_j, & A_1A_2\\[4pt]
+-2p_j,    & A_2A_2\\[4pt]
+\end{cases}
+$$
+
+**Dominance Marker Matrix**
+
+Markers are encoded into a matrix **W** with dimensions of nInd x nSNP (individuals are rows, SNPs are columns). Elements of the matrix are $w_{ij}$.
+
+$$
+w_{ij} \;=\;
+\begin{cases}
+-2q_j^{2},     & A_1A_1\\[4pt]
+2p_j q_j,      & A_1A_2\\[4pt]
+-2p_j^{2},     & A_2A_2\\[4pt]
+\end{cases}
+$$
+
+Two **genomic relationship matrices** (**GRMs**) can then be constructed:
+
+$$K = \frac{ZZ'}{2pq}$$
+
+$$D = \frac{WW'}{(2pq)^2}$$ Additionally, epistatic relationships matrices relating to multi-locus interactions can be constructed, e.g. **A#A** (Additive-Additive), **D#D** (Dominance-Dominance), and **A#D** (Additive-Dominance), by a Hadamard (cell-by-cell) product of the respective **A** and **D** matrices.
+
+Excluding epistasis, the mixed-model looks like this:
+
+$$y = X\beta + Zg + Zd + \varepsilon$$
+
+-   The data vector $y$ has dimension `nObs x 1`
+-   $X\beta$ is for fixed-effects like usual.
+-   $Z$ is not the same as in the formula for the kinship marix K above. Instead, it is the design-matrix pointing observations in the data vector $y$ to their corresponding genotype IDs. It should have dimension `nObs x nInd`
+-   $g$ and $d$ are vectors of BLUPs for the breeding value and dominance deviations, respectively. They have dimension `nInd x 1`.
+
+The random genetic-effects are distributed:\
+$$g \sim N(0,\sigma^2_aK)$$ $$d \sim N(0,\sigma^2_dD)$$
+
+-   The matrices $K$ and $D$ have dimension `nInd x nInd`.
+-   The variance components $\sigma^2_a$ and $\sigma^2_d$ are what we are after.
+
+# Hands-on
+
+Below, I'll make a demo showing the two critical steps: (1) Construct the GRMs, (2) Fit the mixed-models.
+
+We've covered mixed-models in `asreml` and so, from there, you should be able to envision some basic diagnostics, model comparisons, etc that apply to this analysis.
+
+Work either with the example **cassava data** or your **project data**.
+
+-   Estimate the heritability of the trait **without** markers. Give yourself a baseline.
+-   Compare a few traits, how does their heritability differ? Do they differ in the degree of dominance?
+-   Use a LRT and/or AIC: is the trait additive? dominant? or some combination?
+-   How does the heritability compare to the PVE of significant GWAS hits?
+
+Additional things you can consider looking at:
+
+-   From what genome regions does heritability arise? Make multiple relationship matrices with different marker sets.
+-   Partition the markers into bins by MAF (0-0.1, 0.1-0.2,0.2-0.3,etc) and fit a multi-component model. Look at the variance vs. frequency distribution.
+
+# Demo
+
+## Data
+
+Load the cassava genotypes and phenotypes.
+
+```{r, warning=F, message=F, include=F}
+library(tidyverse);
+
+ggphenos<-readRDS(file=here::here("data/IITA_2021GS",
+                                  "drgblups_forGWAS_geneticgainpop.rds"))
+
+ggsnps<-readRDS(file=here::here("data/IITA_2021GS","snps_forGWAS_geneticgainpop_reducedset.rds"))
+
+traits<-c("MCMDS","DM","BCHROMO","PLTHT")
+```
+
+Quick MAF filter on the data.
+
+**ATTENTION - A NOTE ON MAF FILTERS:** For GWAS, we typically use a threshold of 0.05, because of very low power for rarer. For making genomic relationship matrices (GRMs), 0.01 is more commonly accepted. Reasoning being that (1) we aren't doing inference of marker-significance, but instead measuring relatedness and (2) below 0.01 imputation typically fails so our genotypes aren't well measured.
+
+```{r}
+library(ASRgenomics)
+ggsnps_filt <- qc.filtering(M=ggsnps,
+                            maf         = 0.01, # for a GRM, keep markers with MAF >= 0.01
+                            marker.call = 1, # These data are imputed already
+                            ind.call    = 1, # These data are imputed already
+                            imput       = F)
+ggsnps_filt<-ggsnps_filt$M.clean
+```
+
+## GRMs
+
+Now we want to construct three genomic relationship matrices: A, D and E (epistasis)
+
+Numerous R packages compute this: `rrBLUP`, `sommer`, `ASRgenomics`, `genomicMateSelectR`, `AGHMatrix`, etc.
+
+I can vouch for two: `sommer` has functions for A, D and Epistasis. `genomicMateSelectR` is my own package.
+
+You can install it, if you want with:
+
+```{r, eval=F}
+devtools::install_github("wolfemd/genomicMateSelectR", ref = 'master') 
+```
+
+However, I want you to see this as approachable, so here's the code for the `kinship()` function.
+
+You have two inputs: `M` is the marker matrix, should look exactly like our marker matrix (`ggsnps_filt`) currently does. `type="add"` for the additive matrix, `type="domClassic"` for the dominance matrix corresponding to the "Classical" parameterization [discussed previously](7_GeneticEffects.qmd), and `type="domGenotypic"` for the genotypic parameterization.
+
+We will do the "Classical" partition.
+
+```{r}
+# library(genomicMateSelectR)
+kinship<-function (M, type){  
+  M <- round(M)
+  freq <- colMeans(M, na.rm = T)/2
+  P <- matrix(rep(freq, nrow(M)), byrow = T, ncol = ncol(M))
+  if (type == "add") {
+    Z <- M - 2 * P
+    varD <- sum(2 * freq * (1 - freq))
+    K <- tcrossprod(Z)/varD
+    return(K)
+  }
+  if (type == "domClassic") {
+    W <- M
+    W[which(W == 1)] <- 2 * P[which(W == 1)]
+    W[which(W == 2)] <- (4 * P[which(W == 2)] - 2)
+    W <- W - 2 * (P^2)
+    varD <- sum((2 * freq * (1 - freq))^2)
+    D <- tcrossprod(W)/varD
+    return(D)
+  }
+  if (type == "domGenotypic") {
+    W <- M
+    W[which(W == 2)] <- 0
+    W <- W - (2 * P * (1 - P))
+    varD <- sum((2 * freq * (1 - freq)) * (1 - (2 * freq * 
+                                                  (1 - freq))))
+    D <- tcrossprod(W)/varD
+    return(D)
+  }
+}
+```
+
+Create the Additive matrix:
+
+```{r}
+A<-kinship(ggsnps_filt, type="add")
+D<-kinship(ggsnps_filt, type="domClassic")
+# The Hadamard (cell-by-cell) matrix product denoted "#"
+# Is conducted with using the "*" operator on two matrices of identical dim.
+
+E<-A*D # this will be A#D, additive-by-dominance
+# You could also do A*A, D*D or all three at the same time
+# I just want to keep it simple here. 
+```
+
+Now, just because I'm curious, let's compare the matrices:
+
+```{r}
+cor(diag(A),diag(D))
+```
+
+```{r}
+cor(A[lower.tri(A)],D[lower.tri(D)])
+# plot(A[lower.tri(A)],D[lower.tri(D)])
+```
+
+So the diagonals are correlated, but the off-diagonals are quite difference.
+
+Indicates they measure different dimensions of relatedness.
+
+**Matrix diagnostics:** before we feed the matrices into ASREML, we need to check them. There are several ways to supply them to asreml. It will depend on the "condition" of the matrix. GRMs are often not **positive definite (PD)**, which means that all eigenvalues are \>0, the matrix is full rank and fully invertible. Instead, they are often only **positive semi-definite (PSD)**. I advise you to learn more about the meaning. Practical thing is, if you don't either (1) have a PD matrix, (2) tell asreml your matrix is PSD, (3) invert the matrix and supply in inverted state, R will fail.
+
+**Fun story:** I wasn't planning to explain the above... but when I took the **A** matrix above and supplied it direct to `asreml`, I got a **fatal error**, crashing R and Rstudio. Here's the fix:
+
+`asreml`'s documentation explaining how to supply known variance structures is here: https://asreml.kb.vsni.co.uk/knowledge-base/knownstruc/
+
+Or do `?vm`
+
+We can use a convenience R package to test our matrix properties:
+
+```{r}
+# install.packages("matrixcalc")
+library(matrixcalc)
+is.positive.definite(A)
+```
+
+```{r}
+is.positive.semi.definite(A)
+```
+
+Ok, so this one's PSD.
+
+```{r}
+# OPTION 1
+### One trick is to "add a ridge" (aka to "bend" the matrix)....
+### It means adding a tiny value to the diagonals
+### Some packages like `rrBLUP` actually do this by default as a precaution.
+A<-A+diag(1e-6,nrow(A))
+is.positive.definite(A)
+```
+
+```{r, eval=F, include=F}
+# OPTION 2
+### In your call to asreml, tell it the matrix is PSD
+random    = ~vm(GIDa,A,singG="PSD")
+```
+
+Don't forget to check the other matrices:
+
+```{r}
+is.positive.definite(D)
+is.positive.definite(E)
+```
+
+**Bonus:** `ASRgenomics` package has a very convenient `kinship.diagnostics()` function. Makes plots and supplies some useful summaries... but nothing regarding it's PD, PSD status.
+
+```{r}
+# kinship.diagnostics(A)
+```
+
+## Mixed-model
+
+```{r}
+library(asreml); 
+library(ASRgenomics)
+
+# One key first step to satisfy the software needs
+# Create one GID _factor_ for each genetic component
+## Using the same column "GID" for the additive and dominance won't be allowed
+## Make the levels of the factor = to the GRM's rownames/colnames
+## asreml and other mixed-model solvers will be able to model correctly then
+ggphenos<-ggphenos %>% 
+    mutate(GIDa=factor(GID,levels=rownames(A)),
+           GIDd=factor(GID,levels=rownames(D)),
+           GIDe=factor(GID,levels=rownames(E)))
+```
+
+```{r}
+# Additive only model
+fit_A<-asreml(fixed     = MCMDS~1,
+              random    = ~vm(GIDa,A),
+              data      = ggphenos)
+# summary(fit_A)$varcomp
+vpredict(fit_A,H2~V1/(V1+V2))
+```
+
+```{r}
+# Additive plus Dominance
+fit_AD<-asreml(fixed     = MCMDS~1,
+              random    = ~vm(GIDa,A) + vm(GIDd,D),
+              data      = ggphenos)
+summary(fit_AD)$varcomp
+```
+
+```{r}
+vpredict(fit_AD,H2~(V1+V2)/(V1+V2+V3))
+```
+
+```{r}
+vpredict(fit_AD,propD~(V2)/(V1+V2+V3))
+```
+
+So including the dominance component seems to have increased the total genetic variance explained by 11%.
+
+```{r}
+vpredict(fit_AD,propA~(V1)/(V1+V2+V3))
+```
+
+But this is a mixed-model. We can use a Wald LRT and the AIC as additional "significance" testing of the variance components.
+
+```{r}
+lrt(fit_AD,fit_A)
+```
+
+Significant Wald test.
+
+```{r}
+summary(fit_AD)$aic<summary(fit_A)$aic
+```
+
+And indeed AIC of AD model is smaller than of A-only model.
+
+So adding dominance improves model fit.
+
+For completeness, we might also fit a dominance-only model and use a LRT to confirm signficance of the dominance term comparing to the Add+Dom model.
+
+```{r}
+fit_D<-asreml(fixed     = MCMDS~1,
+              random    = ~vm(GIDd,D),
+              data      = ggphenos)
+lrt(fit_AD,fit_D)
+```
+
+```{r}
+summary(fit_AD)$aic<summary(fit_D)$aic
+```
+
+Above shows dominance is definitely significant.
+
+One last thing: just so you observe how variance estimation behaves. Check how much variance is explained in the dominance-alone model.
+
+```{r}
+vpredict(fit_D,propD~(V1)/(V1+V2))
+```
+
+Though the Additive *plus* Dominance model has the best model fit (lowest AIC), the dominance-alone model seems to explain more total genetic variance.
+
+I did not explicitly expect that, *but* I do have a hypothesis: having studied the trait MCMDS, it is known to by largely (but not entirely) influenced by a single major-effect locus called CMD2 (seen in our [lesson on GWAS](8_IntroGWAS.qmd)). CMD2 has been shown to have a largely (but not entirely) dominant-effect. It seems likely this result reflects that fact.
+
+```{r, eval=F, include=F}
+# FYI: You can also supply the matrix pre-inverted to asreml. 
+# I think this might save compute time. Not sure.
+Ainv<-solve(A)
+attr(Ainv, "INVERSE") <- TRUE
+
+### Then in asreml() call
+random    = ~vm(GIDa,Ainv)
+```
+
+# Conclusion
+
+Now you've seen how to include kinship and similar matrices into a mixed-model.
+
+Follow my suggestions in the "Hands-on" section above. We didn't try it in the demo, and I didn't check, but see if there's evidence of epistasis by including that matrix in the model.
+
+**Final Note:** The BLUPs from the model you just learned can be referred to as **genomic BLUPs** and are predictions of the breeding values and dominance deviations, sometimes called **genomic estimated breeding values (GEBV)** and **genomic estimated dominance deviations (GEDD)**. We can term their sum **genomic estimated total genetic value (GETGV) = GEBV + GEDD**. This model is your first genomic prediction and is frequently referred to as **GBLUP** in the literature.

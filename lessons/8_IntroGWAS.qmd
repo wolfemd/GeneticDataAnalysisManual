@@ -1,5 +1,5 @@
 ---
-title: "Intro to GWAS"
+title: "Intro to GWAS in R"
 author: "Marnin Wolfe"
 format:
   html:
@@ -296,7 +296,6 @@ my_lm_gwas<-snps_to_test %>%
     }))
 my_lm_gwas<-my_lm_gwas %>% unnest(lmFit)
 ```
-
 
 ```{r}
 my_lm_gwas %>% head

@@ -44,3 +44,4 @@ Department of Crop, Soil & Environmental Sciences, Auburn University
 ### Module 3: GWAS
 
 -   [Lesson 8 - Introduction to GWAS in R](lessons/8_IntroGWAS.html) - `GAPIT` 
+-   [Lesson 9 - Partitioning Genomic Variance](lessons/9_GenomicHeritability.html) - `asreml` 

@@ -29,6 +29,7 @@ website:
       - section: "Module 3: GWAS"
         contents:
           - lessons/8_IntroGWAS.qmd
+          - lessons/9_GenomicHeritability.qmd
 
 format:
   html:
