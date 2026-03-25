@@ -67,7 +67,7 @@ In our [previous lesson on GWAS](8_IntroGWAS.qmd), we learned about using **geno
 
 In the context of marker-trait regression, [in an earlier lesson](7_GeneticEffects.qmd), you learned about partitioning genetic effects into additive and dominance-deviation effects.
 
-We'll use a similar principal here. Instead of a marker-trait regression, we'll construct additive and dominance relationship matrices and use them as inputs (known covariances) in a mixed-model [@Vitezica2013; @muñoz2014;@varona2018].
+We'll use a similar principal here. Instead of a marker-trait regression, we'll construct additive and dominance relationship matrices and use them as inputs (known covariances) in a mixed-model [@Vitezica2013; @muñoz2014; @varona2018].
 
 **Additive Marker Matrix**
 

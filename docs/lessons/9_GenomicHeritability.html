@@ -4013,6 +4013,23 @@ vertical-align: -.125em;
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Module 4: Genomic Prediction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lessons/10_IntroGP.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Intro to Genomic Prediction in R</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
@@ -4298,7 +4315,7 @@ w_{ij} \;=\;
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(asreml); </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Online License checked out Mon Mar  2 10:58:25 2026</code></pre>
+<pre><code>Online License checked out Wed Mar 25 08:59:59 2026</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ASRgenomics)</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -4318,14 +4335,14 @@ w_{ij} \;=\;
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">random    =</span> <span class="sc">~</span><span class="fu">vm</span>(GIDa,A),</span>
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">data      =</span> ggphenos)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/03/2026 10:58:25
+<pre><code>ASReml Version 4.2 25/03/2026 08:59:59
           LogLik        Sigma2     DF     wall
- 1      39.62829     0.2938123    593   10:58:26
- 2      53.60490     0.2676809    593   10:58:26
- 3      68.13622     0.2329742    593   10:58:26
- 4      75.60575     0.2021469    593   10:58:26
- 5      77.03770     0.1831633    593   10:58:26
- 6      77.03940     0.1823705    593   10:58:26</code></pre>
+ 1      39.62829     0.2938123    593   08:59:59
+ 2      53.60490     0.2676809    593   08:59:59
+ 3      68.13622     0.2329742    593   08:59:59
+ 4      75.60575     0.2021469    593   08:59:59
+ 5      77.03770     0.1831633    593   08:59:59
+ 6      77.03940     0.1823705    593   08:59:59</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(fit_A)$varcomp</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">vpredict</span>(fit_A,H2<span class="sc">~</span>V1<span class="sc">/</span>(V1<span class="sc">+</span>V2))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -4340,14 +4357,14 @@ H2 0.4592524 0.05757967</code></pre>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">random    =</span> <span class="sc">~</span><span class="fu">vm</span>(GIDa,A) <span class="sc">+</span> <span class="fu">vm</span>(GIDd,D),</span>
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">data      =</span> ggphenos)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/03/2026 10:58:26
+<pre><code>ASReml Version 4.2 25/03/2026 08:59:59
           LogLik        Sigma2     DF     wall
- 1      41.86048     0.2687851    593   10:58:27
- 2      55.81778     0.2367448    593   10:58:27
- 3      70.14929     0.1982413    593   10:58:27
- 4      77.83510     0.1688403    593   10:58:28
- 5      79.44181     0.1523283    593   10:58:28
- 6      79.44466     0.1512623    593   10:58:28</code></pre>
+ 1      41.86048     0.2687851    593   09:00:00
+ 2      55.81778     0.2367448    593   09:00:01
+ 3      70.14929     0.1982413    593   09:00:01
+ 4      77.83510     0.1688403    593   09:00:01
+ 5      79.44181     0.1523283    593   09:00:01
+ 6      79.44466     0.1512623    593   09:00:01</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_AD)<span class="sc">$</span>varcomp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -4407,14 +4424,14 @@ Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">random    =</span> <span class="sc">~</span><span class="fu">vm</span>(GIDd,D),</span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">data      =</span> ggphenos)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ASReml Version 4.2 02/03/2026 10:58:28
+<pre><code>ASReml Version 4.2 25/03/2026 09:00:02
           LogLik        Sigma2     DF     wall
- 1     -10.18713     0.3445489    593   10:58:28
- 2     -2.438659     0.3034788    593   10:58:28
- 3      5.455166     0.2466557    593   10:58:28
- 4      9.270710     0.1988612    593   10:58:29
- 5      10.03610     0.1716467    593   10:58:29
- 6      10.04576     0.1683588    593   10:58:29</code></pre>
+ 1     -10.18713     0.3445489    593   09:00:02
+ 2     -2.438659     0.3034788    593   09:00:02
+ 3      5.455166     0.2466557    593   09:00:02
+ 4      9.270710     0.1988612    593   09:00:02
+ 5      10.03610     0.1716467    593   09:00:02
+ 6      10.04576     0.1683588    593   09:00:02</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lrt</span>(fit_AD,fit_D)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">

@@ -45,3 +45,8 @@ Department of Crop, Soil & Environmental Sciences, Auburn University
 
 -   [Lesson 8 - Introduction to GWAS in R](lessons/8_IntroGWAS.html) - `GAPIT` 
 -   [Lesson 9 - Partitioning Genomic Variance](lessons/9_GenomicHeritability.html) - `asreml` 
+
+### Module 4: Genomic Prediction
+
+-   [Lesson 10 - Introduction to GP in R](lessons/10_IntroGP.html) 
+<!-- -   [Lesson 10 - Example of Pedigree-enabled Selection](lessons/10_PedigreeBLUP.html) - `asreml`  -->

@@ -30,7 +30,10 @@ website:
         contents:
           - lessons/8_IntroGWAS.qmd
           - lessons/9_GenomicHeritability.qmd
-
+      - section: "Module 4: Genomic Prediction"
+        contents:
+           - lessons/10_IntroGP.qmd
+#          - lessons/10_PedigreeBLUP.qmd
 format:
   html:
     theme: cosmo
