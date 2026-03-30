@@ -1,0 +1,497 @@
+---
+title: "More GP Models"
+author: "Marnin Wolfe"
+format:
+  html:
+    toc: true
+    code-fold: false
+    html-math-method: mathml
+execute:
+  error: true
+  echo: true
+  warning: false
+  message: false
+---
+
+**Previously**: [Introduction to GP in R](lessons/10_IntroGP.qmd) 
+
+# Lesson Plan
+
+In this lesson, I want to challenge everyone.
+
+We have been using a cassava training population of \>500 clones for our examples.
+
+In today's hands-on activity, you will determine which genomic prediction model has the best cross-generation prediction accuracy.
+
+Along the way, I will show how to implement a few additional prediction models.
+
+This is a realistic use case. In the example, we will have \>2000 clones designated "C1" (Cycle 1), which are the offspring of around 100 selection parents from among the training population.
+
+I want you to compare prediction within generation (as measured with cross-validation), to prediction across-generation.
+
+This will demonstrate how recombination and shifting allele frequencies in a population under selection reduces prediction accuracy and necessitates retraining the model with new individuals.
+
+First, you'll use the training population only. Then, you'll add some phenotypes from the C1 and see how retraining the model influences accuracy.
+
+# Demo data
+
+```{r, warning=F, message=F}
+library(tidyverse);
+# Load the "FullPop" blups
+## Additional processing and filtering will be needed
+phenos<-readRDS(file=here::here("data/IITA_2021GS",
+                                  "blups_forGWAS_FullPop.rds"))
+
+phenos %>% 
+  distinct(Cohort,GID) %>% 
+  count(Cohort)
+```
+
+The training pop. we used in previous examples is the phenotyped+genotyped subset of the "GGetc" cohort.
+
+Today, we will train on that set.
+
+Our prediction target will be their direct progeny (so-called "C1"), which is here labelled "TMS13" (the year of selection was 2013).
+
+```{r}
+traits<-c("MCMDS","DM","BCHROMO","PLTHT")
+
+c0_phenos<-phenos %>% 
+  filter(Cohort=="GGetc",
+         Trait %in% traits) %>% 
+  select(Trait,GID,drgBLUP) %>% 
+  spread(Trait,drgBLUP)
+  
+c1_phenos<-phenos %>% 
+  filter(Cohort=="TMS13",
+         Trait %in% traits) %>% 
+  select(Trait,GID,drgBLUP) %>% 
+  spread(Trait,drgBLUP)
+
+
+```
+
+For the SNP data, we'll start with a really big dataset and filter it too.
+
+```{r, warning=F, message=F}
+snps<-readRDS(file=here::here("data/IITA_2021GS","snps_forGWAS_FullPop.rds"))
+dim(snps)
+```
+
+61K SNPs are the "full set". In our demos, we've used an LD-pruned set that I pre-prepared.
+
+Depending on your machine, 61K SNP may be manageable. Skip the next block if you want to try using full set of markers.
+
+```{r, warning=F, message=F}
+reduced_set_snps<-readRDS(file=here::here("data/IITA_2021GS","snpsets.rds"))
+reduced_set_snps<-reduced_set_snps %>% 
+  filter(Set=="reduced_set") %>% 
+  unnest(snps2keep)
+
+snps<-snps[,reduced_set_snps$FULL_SNP_ID]
+dim(snps)
+```
+
+You'll notice that our training (C0) and testing (C1) are both larger than before.
+
+I was more stringent previously using `Year_Accession<2013` in my filtering of lines including in C0. Actually, many genotypes don't have a known "Year_Accession", so simply taking the "GGetc" Cohort gives a bigger result of 1275 clones.
+
+If you want a smaller size for your laptop, use the `<2013` criterion.
+
+Subsequently, we want to filter the SNP dataset again, this time to only the TRN+TST (C0+C1) individuals.
+
+NOW, we can do a MAF filter. NOTE that we are doing that on the TRN+TST. The MAF is expected to shift relative to C0 when adding the selected offspring generation, C1. An alternative pipeline, that might actually be a better one, is to filter by MAF in the TRN (C0)... only these lines will contribute to marker-effect computation.
+
+```{r}
+snps<-snps[rownames(snps) %in% union(c0_phenos$GID,c1_phenos$GID),]
+dim(snps)
+```
+
+```{r}
+library(ASRgenomics)
+snps<-qc.filtering(M=snps,
+                   maf         = 0.01, # for a GRM, keep markers with MAF >= 0.01
+                   marker.call = 1, # These data are imputed already
+                   ind.call    = 1, # These data are imputed already
+                   impute = F)
+snps<-snps$M.clean
+```
+
+The last thing we'll do here, is center the marker matrix.
+
+This isn't strictly necessary, but it improves the interpretation of SNP-effects. Centering makes interpretation of SNP-effect as a deviation from the population mean. As I showed you in the previous lesson, it also makes for equivalence between GBLUP and RRBLUP.
+
+```{r}
+M<-scale(snps,center = TRUE, scale = FALSE)
+```
+
+# New Models
+
+## Bayesian models with BGLR
+
+```{r}
+# install.packages("BGLR")
+```
+
+BGLR (Bayesian Generalized Linear Regression) is an extremely flexible mixed-model solver. It's also open-source and well developed in the GP community. Manual and tutorials are available [here](https://bglr.r-forge.r-project.org/).
+
+You can fit much of the stuff we've done in `asreml` with BGLR.
+
+You can do even more. Multi-trait. Multi-kernel. Ordinal and categorical in addition to continuous responses.
+
+Some of the BGLR models we'll fit:
+
+-   **GBLUP:** uses a genomic relationship matrix, G and estimates breeding values directly.
+-   **RR-BLUP:** estimates one marker effect per SNP, all sharing the same normal prior variance.
+-   **BayesA:** estimates one marker effect per SNP, but each SNP has its own variance, allowing some markers to have much larger effects. Approximately, a t-distribution prior.
+-   **BayesB:** like BayesA, but assumes only some markers matter; many SNPs have zero effect.
+
+First, let's split the marker matrix into Train and Test sets.
+
+```{r}
+M_trn<-M[rownames(M) %in% c0_phenos$GID,]
+M_tst<-M[rownames(M) %in% c1_phenos$GID,]
+```
+
+```{r}
+# Set GID in train data as factor with levels matching M_trn rownames
+trn_data<-c0_phenos %>% 
+  mutate(GID=factor(GID,levels=rownames(M_trn)))
+
+# BGLR requires the user to formulate their own design matrices 
+### We did this when we fit RR-BLUP models in sommer already
+
+Z = model.matrix(~0 + GID,data=trn_data)
+```
+
+### Bayesian GBLUP
+
+Let's start with a GBLUP model. Actually, we have to make the relationship matrix first:
+
+```{r}
+library(genomicMateSelectR)
+A<-kinship(M_trn,type = "add")
+```
+
+```{r, results='hide'}
+library(BGLR)
+# All effects to-be-modelled are specified in a list object denoted "ETA".
+### This would include "FIXED"-effects and other non-genetic random effects.
+### In Bayesian world, "fixed" effects are effects with a "flat prior distribution"
+### We don't have any fixed effects in our example dataset
+
+# Below, for a GBLUP model, I name a GID, pass 
+ETA_gblup<-list(GID=list(K = Z%*%A%*%t(Z), model = "RKHS"))
+# Look-up the BGLR manual on the structure of the list "ETA" for more
+y = c0_phenos$MCMDS
+
+bgblup_fit<-BGLR(y=y,ETA=ETA_gblup,nIter=1000,burnIn=100,thin=25)
+```
+
+BGLR uses a Gibbs sampler instead of REML. The parameters to control the process on "nIter", "burnIn" and "thin".
+
+-   nIter: total number of MCMC iterations to run.
+-   burnIn: number of early iterations to discard.
+-   thin: keep only every kth sample.
+
+Burn-in removes the unstable beginning of the chain.
+
+Thinning reduces autocorrelation and file size.
+
+More iterations usually give more stable posterior summaries, but take longer to run.
+
+The choice of `nIter` and `burnIn` above is a small number for demo purposes. Much larger values are needed for reliable results.
+
+Residual variance
+
+```{r}
+bgblup_fit$varE
+```
+
+For our "BLUPs", reach into the "ETA" part of the output.
+
+Variance of the effect:
+
+```{r}
+bgblup_fit$ETA$GID$varU
+```
+
+The BLUPs, GEBV are here:
+
+```{r}
+bgblup_fit$ETA$GID$u %>% head
+
+```
+
+Just a vector of length "y". BGLR doesn't bother with the names of the genotypes.... it should be identical to the ordering of y.
+
+NOTE: I make the GRM above with only training set individuals. If you wanted to predict C1 (or some test set), they need inclusion in the GRM, making the GRM grow in size.
+
+For marker-regression models, we use the training sets SNP matrix for fitting, then the test set's marker matrix in a separate prediction step.
+
+### Model stability
+
+Bayesian models don't report "converge" or "failed to converge" like frequentist REML does.
+
+Since we are after prediction accuracy, you *could* simply judge model fit by prediction accuracy.
+
+In addition, we can plot the value of parameters (e.g. $\sigma^2_{\varepsilon}$) across the Gibbs sampler iterations. BGLR automatically saves the sample values to your hard disk. If you don't tell it otherwise, files will be stored in your working directory.
+
+```{r}
+varE <- scan("varE.dat")
+plot(varE, type = "l", main = "Gibbs chain for var(E)", xlab = "Iteration (post-thinning)"); abline(v = 100 / 25, col = "red")
+```
+
+```{r}
+u <- scan("ETA_GID_varU.dat")
+
+plot(u, type = "l", main = "Gibbs chain for var(G)", xlab = "Iteration (post-thinning)"); abline(v = 100 / 25, col = "red")
+```
+
+What you want to see is:
+
+-   No long-term upward or downward trend.
+-   The chain fluctuates around a stable average value.
+-   After burn-in (vertical red line), the samples look like “fuzzy noise” around a constant mean.
+
+Obviously, that is not the case above. We would want to run for longer (adjust `nIter` and `burnIn` values).
+
+You can also run the model multiple times, looking for consistency in variance components, predicted values, accuracy. You might average across multiple runs of BGLR.
+
+### Bayes RRBLUP
+
+```{r, results='hide'}
+
+ETA_rrblup<-list(SNPeffects=list(X = Z%*%M_trn, model = "BRR"))
+
+brrblup_fit<-BGLR(y=y,ETA=ETA_rrblup,nIter=1000,burnIn=100,thin=25)
+```
+
+-   The list object ETA has one level for each term in the ETA list originally specified
+-   Let's look at the SNP effects
+
+```{r}
+# Marker effects
+b_hat<-brrblup_fit$ETA$SNPeffects$b
+```
+
+```{r}
+hist(b_hat, main='Bayes RRBLUP showing normal distribution of marker-effects')
+```
+
+```{r}
+barplot(b_hat^2, xlab="SNP", ylab="Squared SNP effect",
+        main='Just to show you dont need a fancy ggplot of the effects')
+```
+
+Get GEBVs for the C1 test set.
+
+```{r}
+brr_c1_gebvs<-M_tst%*%b_hat
+```
+
+Calculate accuracy on C1
+
+```{r}
+brr_c1_gebvs %>% 
+  as.data.frame %>% 
+  rownames_to_column(var = "GID") %>% 
+  left_join(c1_phenos) %$% 
+  cor(V1,MCMDS,use = 'complete.obs')
+```
+
+We probably will get a better result with a much longer Gibbs chain (or multiple chains), i.e. bigger `nIter`.
+
+But still, we expect lower accuracy across generation. Our [previous cross-validations for C](10_IntroGP.qmd) came in around 0.5-0.6.
+
+### BayesA and BayesB
+
+Now you've got the basic set-up of models in BGLR.
+
+Here's two examples of Bayesian Alphabet models (BayesA and BayesB).
+
+I'll show the syntax, you run the code and test the accuracy.
+
+```{r, results='hide'}
+ETA_BayesA<-list(SNPeffects=list(X = Z%*%M_trn, model = "BayesA"))
+bayesA_fit<-BGLR(y=y,ETA=ETA_BayesA,nIter=1000,burnIn=100,thin=25)
+```
+
+```{r, results='hide'}
+ETA_BayesB<-list(SNPeffects=list(X = Z%*%M_trn, model = "BayesB"))
+bayesB_fit<-BGLR(y=y,ETA=ETA_BayesB,nIter=1000,burnIn=100,thin=25)
+```
+
+Now make some plots. Compare distribution of marker-effects between RR-BLUP, BayesA and BayesB.
+
+```{r}
+barplot(bayesA_fit$ETA$SNPeffects$b^2, xlab="SNP", ylab="Squared SNP effect",
+        main='BayesA Marker-effects')
+```
+
+```{r}
+barplot(bayesB_fit$ETA$SNPeffects$b^2, xlab="SNP", ylab="Squared SNP effect",
+        main='BayesB Marker-effects')
+```
+
+Test for the accuracy on C1. Which model is best?
+
+Does number of iterations matter?
+
+Also available for you to test in BGLR, BL = Bayesian Lasso and BayesC.
+
+## RKHS
+
+Next, let's get non-parametric and learn some "machine-learning" models.
+
+In GBLUP, we assume an infinitesimal model (SNPs all have effects, mean of zero, variance in effects drawn from a normal distrib.). The corresponding genomic relationship matrix measures a linear relationship b/t marker-similarity and genetic similarity. The GBLUP model thus predicts *breeding values* and is useful for selecting parents and driving change in the population mean.
+
+Sometimes, however, we ant prediction of the **total genetic value** including any discernable genetic effects, linear or otherwise.
+
+"RKHS" stands for "Reproducing Kernel Hilbert Spaces". Let's not worry about what the name means.
+
+The practical thing to know is that "RKHS" genomic prediction models are going to use alternative, non-linear / non-parametric "kernels". Here, "kernel" is a term used in machine learning, for a covariance matrix, which in GP is what we call the genomic relationship matrix.
+
+RKHS uses a kernel matrix that can capture more complex relationships among genotypes, including nonlinear patterns, epistasis-like effects, and local similarity.
+
+A common RKHS kernel is called the Gaussian kernel:
+
+$$K_{ij} = exp(−hd^2_{ij})$$
+
+where $d^2_{ij}$ is the genetic distance between individuals $i$ and $j$, and $h$ controls how quickly similarity decays with distance.
+
+Note that `exp()` here is as in $exp(x) = e^x$ where $e \approx 2.718$.
+
+If two individuals are genetically very similar, $d_{ij}$ is small and $K_{ij}$ is close to 1. If distant, $K_{ij}$ closes on zero. Similarity decays exponentially with distance.
+
+**NOTE on BGLR**: when we used `BGLR` earlier, we fit a GBLUP model specifing `model="RKHS"`. GBLUP is technically a special case of RKHS and so for BGLR, this means a kernel-matrix model is being fit instead of a marker-regression model. What the model predicts depends on the kernel-matrix chosen and whether a normal prior distribution is chosen, or something else.
+
+**Construct a Gaussian Kernel:** This may take a few moments.
+
+```{r}
+euclid<-as.matrix(dist(M_trn,method='euclidean')) 
+bandwidth=0.01 # this is the "h" parameter
+K_gauss <- exp(-(euclid*bandwidth))
+hist(K_gauss)
+```
+
+Just for comparison sake, look at the correlation between the GRM ("A") and the Gaussian kernel we just made ("K_gauss").
+
+```{r}
+cor(A[lower.tri(A)],K_gauss[lower.tri(K_gauss)])
+```
+
+**On the choice of the bandwidth parameter,** $h$: The value of $h$ determines how quickly similarity decays as genetic distance increases. This parameter needs to be "tuned" for best results. There are different strategies to do this.
+
+Option 1: Fit several single-kernel models with different $h$ values. Take the one with the best accuracy based on cross-validation.
+
+For example:
+
+```{r, eval=F}
+h_values <- c(0.01, 0.1, 1, 5, 10)
+```
+
+Option 2: Fit multiple kernels simultaneously.
+
+For example, use several kernels built from different $h$ values:
+
+```{r, eval=F}
+# In BGLR syntax, something like this:
+ETA <- list(
+  list(K = K1, model = "RKHS"),
+  list(K = K2, model = "RKHS"),
+  list(K = K3, model = "RKHS")
+)
+# Where K1, K2 and K3 used different values of h, but with same SNP data
+```
+
+Multi-kernel RKHS, in my limited experience, is more robust. It avoids some decision making and expects the REML (or Gibbs MCMC sampler) to solve for the optimal weight on each kernel, in the form of variance components for each random-effect (each kernel).
+
+**HANDS-ON RKHS:** Use your choice of mixed model solver. You can use `BGLR` or go back to `asreml` or `sommer`. Use your choice of optimization approach to find the best value(s) of $h$.
+
+## A+D+E
+
+This refers to the parametric models of Additive + Dominance + Epistasis.
+
+We learned these models in the [lesson on genomic heritability](9_GenomicHeritability.qmd) and before that in the lesson on [genetic-effects and marker-regressions](7_GeneticEffects.qmd).
+
+You will see that these are simply GBLUP models with multiple-random effects, each using a different genomic relationship matrix.
+
+I challenge you to implement cross-generation prediction with at least an A+D model.
+
+## Random Forest
+
+As a final non-additive model, I chose something that is strictly a machine-learning model. Random Forest is described as an "ensemble" of many regression trees. It is a largely "black box" approach, taking high-dimensional data and predicting continuous or categorical responses.
+
+Without going too far into the details, we can say it is a nonlinear regression method based on recursive partitioning of the data rather than fitting one global equation.
+
+Here's a graphical depiction:
+
+![See \[here\](https://medium.com/\@denizgunay/random-forest-af5bde5d7e1e) for one explanation.](images/clipboard-1136638155.png)
+
+Random Forest is an ensemble of many regression trees. Each tree is fit on a bootstrap sample of the training data, and at each split it only considers a random subset of markers. The final prediction is the average across all trees.
+
+```{r, eval=F}
+install.packages("ranger")
+```
+
+```{r, results='hide'}
+library(ranger)
+
+# We are going to need to join our phenotype to our genotype matrix
+table(c0_phenos$GID==rownames(M_trn))
+
+# Have to remove missing obs from phenos
+data_rf<-c0_phenos %>%
+  filter(!is.na(MCMDS)) %>% 
+  mutate(GID=as.character(GID)) %>% 
+  select(GID,MCMDS)
+
+table(data_rf$GID==rownames(M_trn))
+
+# Combine phenos-genos into one data.frame
+### Be careful the names and dimensions are in same order / match
+data_rf<-data.frame(MCMDS=data_rf$MCMDS, M_trn[data_rf$GID,])
+
+fit_rf <- ranger(MCMDS ~ .,
+                 data = data_rf,
+                 num.trees = 500,
+                 mtry = floor(sqrt(ncol(M_trn))), # found suggestion of mtry = sqrt number of markers
+                 importance = "impurity")
+```
+
+-   `num.trees`: how many trees in the forest
+-   `mtry`: how many markers are randomly offered to a tree at each split
+-   more trees usually means more stable predictions
+-   smaller `mtry` increases diversity among trees
+
+**NOTE:** Model "importance" is an random forest metric that records how much each marker helped reduce prediction error across all trees. Model importance *is not* the same a marker-effect, nor is it the same as r-squared (variance explained). This is not usually of interest in genomic prediction. I'll look at it below out of curiousity.
+
+```{r}
+# To Predict the test set
+pred_c1_with_rf <- predict(fit_rf, data = M_tst)# $predictions
+# Produces an error...
+## Small problem with naming of columns
+## X was prefixed onto `data_rf` b/c data.frame requires it
+
+M_tst_rf<-M_tst
+colnames(M_tst_rf)<-paste0("X",colnames(M_tst_rf))
+pred_c1_with_rf <- predict(fit_rf, data = M_tst_rf)$predictions
+
+# Calculate accuracy
+tibble(GID=rownames(M_tst),Pred=pred_c1_with_rf) %>% 
+  left_join(c1_phenos) %$% 
+  cor(Pred,MCMDS,use = 'complete.obs')
+```
+
+# Now your turn
+
+We've fleshed out your ability to implement different models in different R packages.
+
+Make the following comparisons with the data:
+
+1.  Predict C0--\>C1. Main objective is to determine which model is best?
+    -   Does optimizing Gibbs sampler in BGLR help?
+    -   What about the parameters in RKHS and Random Forest? First, you'll use the training population only.
+2.  Sample a subset of C1 and add them to the C0 training data. Re-train your models. How is accuracy influenced?
+    -   When adding C1 individuals to your training data, be sure to *exclude* them from the testing dataset before computing accuracy.

@@ -49,4 +49,6 @@ Department of Crop, Soil & Environmental Sciences, Auburn University
 ### Module 4: Genomic Prediction
 
 -   [Lesson 10 - Introduction to GP in R](lessons/10_IntroGP.html) 
+-   [Lesson 11 - More Genomic Prediction Models in R](lessons/11_MoreGP.html) 
+
 <!-- -   [Lesson 10 - Example of Pedigree-enabled Selection](lessons/10_PedigreeBLUP.html) - `asreml`  -->

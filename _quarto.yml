@@ -33,6 +33,7 @@ website:
       - section: "Module 4: Genomic Prediction"
         contents:
            - lessons/10_IntroGP.qmd
+           - lessons/11_MoreGP.qmd
 #          - lessons/10_PedigreeBLUP.qmd
 format:
   html:
